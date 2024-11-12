@@ -8,7 +8,7 @@ import {
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { Breadcrumb, Layout, Menu, theme } from 'antd';
-import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import { Link, Routes, Route } from 'react-router-dom';
 import Option1Page from '../page/firstPage';
 import Option2Page from '../page/secondPage';
 
@@ -31,8 +31,8 @@ function getItem(
 }
 
 const items: MenuItem[] = [
-  getItem('Option 1', '1', <PieChartOutlined />),
-  getItem('Option 2', '2', <DesktopOutlined />),
+  getItem(<Link to="/option1">Option 1</Link>, '1', <PieChartOutlined />),
+  getItem(<Link to="/option2">Option 2</Link>, '2', <DesktopOutlined />),
   getItem('User', 'sub1', <UserOutlined />, [
     getItem('Tom', '3'),
     getItem('Bill', '4'),
@@ -47,16 +47,6 @@ const Layouts: React.FC = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-  const navigate = useNavigate();
-
-  const onMenuClick: MenuProps['onClick'] = (e) => {
-    if (e.key === '1') {
-      navigate('/option1');
-    }
-    if (e.key === '2') {
-      navigate('/option2');
-    }
-  };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -66,8 +56,7 @@ const Layouts: React.FC = () => {
           theme="dark"
           defaultSelectedKeys={['1']}
           mode="inline"
-          items={items} // Здесь items должен быть типа MenuItem          
-          onClick={onMenuClick}
+          items={items}
         />
       </Sider>
       <Layout>
@@ -85,7 +74,6 @@ const Layouts: React.FC = () => {
             <Routes>
               <Route path="/option1" element={<Option1Page />} />
               <Route path="/option2" element={<Option2Page />} />
-              {/* Добавьте другие маршруты здесь */}
             </Routes>
           </div>
         </Content>
@@ -97,12 +85,4 @@ const Layouts: React.FC = () => {
   );
 };
 
-const App: React.FC = () => {
-  return (
-    <Router>
-      <Layouts />
-    </Router>
-  );
-};
-
-export default App;
+export default Layouts;
