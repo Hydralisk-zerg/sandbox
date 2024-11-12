@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest  # Убедитесь, что здесь написано "image", а не "iimage"
+    container_name: postgres_container
+    environment:
+      POSTGRES_DB: postgre
+      POSTGRES_USER: sandbox
+      POSTGRES_PASSWORD: password3908
+    ports:
+      - "5445:5432"
+    volumes:
+     - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
