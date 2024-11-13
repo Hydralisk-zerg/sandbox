@@ -8,8 +8,8 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { Breadcrumb, Layout, Menu, theme } from 'antd';
-import { Link, Routes, Route } from 'react-router-dom';
+import { Breadcrumb, Layout, Menu, Button, theme } from 'antd';
+import { Link, Routes, Route, useNavigate } from 'react-router-dom';
 import Option1Page from '../page/firstPage';
 import Option2Page from '../page/secondPage';
 import Home from '../page/home';
@@ -50,6 +50,16 @@ const Layouts: React.FC = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Здесь вы можете сбросить состояние аутентификации
+    // Например, вызвать функцию из App.tsx для сброса состояния
+    // setIsAuthenticated(false); // если передаете эту функцию через props
+
+    // Перенаправление на страницу входа
+    navigate('/login');
+  };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -63,7 +73,11 @@ const Layouts: React.FC = () => {
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer }} />
+        <Header style={{ padding: 0, background: colorBgContainer, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', paddingRight: '16px' }}>
+          <Button type="primary" onClick={handleLogout}>
+            Logout
+          </Button>
+        </Header>
         <Content style={{ margin: '0 16px' }}>
           <Breadcrumb style={{ margin: '16px 0' }} />
           <div

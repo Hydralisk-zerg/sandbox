@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import type { FormProps } from 'antd';
 import { Button, Form, Input, Card, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
@@ -14,26 +14,56 @@ interface LoginProps {
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const navigate = useNavigate();
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/csrf-token/', {
+          credentials: 'include',
+        });
+        
+        const data = await response.json();
+        
+        if (data.csrfToken) {
+          setCsrfToken(data.csrfToken);
+        } else {
+          console.error('CSRF token not found in response');
+        }
+      } catch (error) {
+        console.error('Error fetching CSRF token:', error);
+      }
+    };
+
+    fetchCsrfToken();
+  }, []);
 
   const onLoginHandler = async (username: string, password: string) => {
     try {
-      const response = await fetch('http://localhost:8000/login/get_users/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (csrfToken) {
+        headers['X-CSRFToken'] = csrfToken;
+      }
 
+      const response = await fetch('http://localhost:8000/api/login/', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({ username, password }),
+        credentials: 'include',
+      });
+      
       const responseData = await response.json();
 
       if (!response.ok) {
-        throw new Error(responseData.error || 'Network response was not ok');
+        throw new Error(responseData.detail || 'Network response was not ok');
       }
 
       message.success('Login successful!');
-      onLogin(username, password); // Устанавливаем аутентификацию
-      navigate('/home'); // Перенаправляем на /home
+      onLogin(username, password);
+      navigate('/home');
     } catch (error: any) {
       message.error('Login failed: ' + error.message);
     }
@@ -71,7 +101,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           </Form.Item>
 
           <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-            <Button type="primary" htmlType="submit">
+            <Button type="primary" htmlType="submit" disabled={!csrfToken}>
               Submit
             </Button>
           </Form.Item>
