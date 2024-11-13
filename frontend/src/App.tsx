@@ -7,11 +7,8 @@ const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   const handleLogin = (username: string, password: string) => {
-    if (username === 'admin' && password === 'password') {
-      setIsAuthenticated(true);
-    } else {
-      alert('Неверный логин или пароль');
-    }
+    // Здесь вы можете установить isAuthenticated в true после успешного входа
+    setIsAuthenticated(true);
   };
 
   return (
@@ -19,11 +16,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route
-          path="/option1"
-          element={isAuthenticated ? <Layouts /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/option2"
+          path="/home"
           element={isAuthenticated ? <Layouts /> : <Navigate to="/login" />}
         />
         <Route path="/" element={<Navigate to="/login" />} />

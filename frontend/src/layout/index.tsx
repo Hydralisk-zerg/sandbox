@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   DesktopOutlined,
   FileOutlined,
+  HomeOutlined,
   PieChartOutlined,
   TeamOutlined,
   UserOutlined,
@@ -11,6 +12,7 @@ import { Breadcrumb, Layout, Menu, theme } from 'antd';
 import { Link, Routes, Route } from 'react-router-dom';
 import Option1Page from '../page/firstPage';
 import Option2Page from '../page/secondPage';
+import Home from '../page/home';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -31,6 +33,7 @@ function getItem(
 }
 
 const items: MenuItem[] = [
+  getItem(<Link to="/home">Home</Link>, '0', <HomeOutlined />),
   getItem(<Link to="/option1">Option 1</Link>, '1', <PieChartOutlined />),
   getItem(<Link to="/option2">Option 2</Link>, '2', <DesktopOutlined />),
   getItem('User', 'sub1', <UserOutlined />, [
@@ -54,7 +57,7 @@ const Layouts: React.FC = () => {
         <div className="demo-logo-vertical" />
         <Menu
           theme="dark"
-          defaultSelectedKeys={['1']}
+          defaultSelectedKeys={['0']}
           mode="inline"
           items={items}
         />
@@ -72,6 +75,7 @@ const Layouts: React.FC = () => {
             }}
           >
             <Routes>
+              <Route path="/home" element={<Home />} />
               <Route path="/option1" element={<Option1Page />} />
               <Route path="/option2" element={<Option2Page />} />
             </Routes>

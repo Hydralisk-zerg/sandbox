@@ -1,6 +1,7 @@
 import React from 'react';
 import type { FormProps } from 'antd';
-import { Button, Form, Input, Card } from 'antd';
+import { Button, Form, Input, Card, message } from 'antd';
+import { useNavigate } from 'react-router-dom';
 
 type FieldType = {
   username: string;
@@ -12,15 +13,34 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const onFinish: FormProps<FieldType>['onFinish'] = (values) => {
-    console.log('Success:', values);
-    onLogin(values.username, values.password);
-    // Переход на другую страницу после успешного входа
-    window.location.href = '/option1'; // Замените '/option1' на нужный путь
+  const navigate = useNavigate();
+
+  const onLoginHandler = async (username: string, password: string) => {
+    try {
+      const response = await fetch('http://localhost:8000/login/get_users/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Network response was not ok');
+      }
+
+      message.success('Login successful!');
+      onLogin(username, password); // Устанавливаем аутентификацию
+      navigate('/home'); // Перенаправляем на /home
+    } catch (error: any) {
+      message.error('Login failed: ' + error.message);
+    }
   };
 
-  const onFinishFailed: FormProps<FieldType>['onFinishFailed'] = (errorInfo) => {
-    console.log('Failed:', errorInfo);
+  const onFinish: FormProps<FieldType>['onFinish'] = (values) => {
+    onLoginHandler(values.username, values.password);
   };
 
   return (
@@ -32,7 +52,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
           wrapperCol={{ span: 16 }}
           initialValues={{ remember: true }}
           onFinish={onFinish}
-          onFinishFailed={onFinishFailed}
           autoComplete="off"
         >
           <Form.Item<FieldType>
