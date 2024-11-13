@@ -16,7 +16,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route
-          path="/home"
+          path="/*"
           element={isAuthenticated ? <Layouts /> : <Navigate to="/login" />}
         />
         <Route path="/" element={<Navigate to="/login" />} />
