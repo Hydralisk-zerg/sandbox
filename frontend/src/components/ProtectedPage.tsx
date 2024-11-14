@@ -1,7 +1,7 @@
-import React from 'react';
+// import React from 'react';
 
-const ProtectedPage: React.FC = () => {
-  return <div>Это защищенная страница. Добро пожаловать!</div>;
-};
+// const ProtectedPage: React.FC = () => {
+//   return <div>Это защищенная страница. Добро пожаловать!</div>;
+// };
 
-export default ProtectedPage;
+// export default ProtectedPage;
