@@ -1,27 +1,26 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Layouts from './layout';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
+import Home from './pages/home';
+import Layouts from './layout/index';
+import UserPage from './pages/UserPage'; // Добавляем импорт UserPage
+import { BrowserRouter } from 'react-router-dom';
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-
-  const handleLogin = (username: string, password: string) => {
-    // Здесь вы можете установить isAuthenticated в true после успешного входа
-    setIsAuthenticated(true);
-  };
-
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
-        <Route
-          path="/*"
-          element={isAuthenticated ? <Layouts /> : <Navigate to="/login" />}
-        />
-        <Route path="/" element={<Navigate to="/login" />} />
-      </Routes>
-    </Router>
+    <BrowserRouter>
+    <Routes>
+      <Route path="/login" element={<Login onLogin={function (username: string, password: string): void {
+        throw new Error('Function not implemented.');
+      } } />} />
+      <Route path="/" element={<Layouts />}>
+        <Route path="home" element={<Home />} />
+        <Route path="user/:userId" element={<UserPage />} /> {/* Добавляем маршрут для UserPage */}
+        <Route path="" element={<Navigate to="/home" replace />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/home" replace />} />
+    </Routes>
+    </BrowserRouter>
   );
 };
 

@@ -26,9 +26,9 @@ def login_view(request):
     except json.JSONDecodeError:
         return JsonResponse({'detail': 'Неверный формат JSON'}, status=400)
 
-@login_required
-@user_passes_test(lambda u: u.is_staff)
-@require_GET
-def get_users(request):
-    users = list(User.objects.values('id', 'username'))
-    return JsonResponse(users, safe=False)
+# @login_required
+# @user_passes_test(lambda u: u.is_staff)
+# @require_GET
+# def get_users(request):
+#     users = list(User.objects.values('id', 'username'))
+#     return JsonResponse(users, safe=False)

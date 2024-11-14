@@ -1,8 +1,7 @@
 import React from "react";
-import Users from "../../components/Users";
 
 const Home: React.FC = () => {
-    let text = <div><Users /></div>
+    let text = <div>Hello World</div>
   return  text;
 };
 

@@ -79,6 +79,6 @@ interface ApiClientConfig {
   
   // Создаем экземпляр API клиента
   export const api = new ApiClient({
-    baseURL: 'http://localhost:8000/api'
+    baseURL: 'http://localhost:8000/'
   });
   

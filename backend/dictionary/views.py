@@ -1,7 +1,8 @@
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET
 from django.http import JsonResponse
-from .models import Country, City, Terminal, Currency, Container, DangerClass, Incoterms, PackagingType, DeliveryType, Cargo
+from .models import Country, City, Terminal, Currency, Container, DangerClass, Incoterms, PackagingType, DeliveryType, Cargo, Employee 
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import JsonResponse
 
 # Получение списка всех справочников (только названия)
 @login_required
@@ -99,3 +100,41 @@ def get_all_dictionaries(request):
         'cargos': list(Cargo.objects.all().values()),
     }
     return JsonResponse(data)
+
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+@require_GET
+def get_employees(request):
+    employees = Employee.objects.select_related('user', 'department', 'position').all()
+    employees_data = []
+    
+    for employee in employees:
+        employee_data = {
+            'id': employee.user.id,
+            'username': employee.user.username,
+            'email': employee.user.email,
+            'first_name': employee.user.first_name,
+            'last_name': employee.user.last_name,
+            'additional_email': employee.additional_email,
+            'phone': employee.phone,
+            'additional_phone': employee.additional_phone,
+            'birth_date': employee.birth_date.strftime('%Y-%m-%d') if employee.birth_date else None,
+            'department': {
+                'id': employee.department.id,
+                'name': employee.department.name
+            },
+            'position': {
+                'id': employee.position.id,
+                'name': employee.position.name
+            },
+            'hire_date': employee.hire_date.strftime('%Y-%m-%d') if employee.hire_date else None,
+            'termination_date': employee.termination_date.strftime('%Y-%m-%d') if employee.termination_date else None,
+            'avatar': request.build_absolute_uri(employee.avatar.url) if employee.avatar else None,
+            'registration_address': employee.registration_address,
+            'living_address': employee.living_address
+        }
+        employees_data.append(employee_data)
+    
+    return JsonResponse(employees_data, safe=False)
