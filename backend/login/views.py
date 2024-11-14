@@ -28,7 +28,7 @@ def login_view(request):
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
-@require_POST
+@require_GET
 def get_users(request):
     users = list(User.objects.values('id', 'username'))
     return JsonResponse(users, safe=False)
