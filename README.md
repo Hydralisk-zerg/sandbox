@@ -1,3 +1,1 @@
-# sandbox
-# sandbox
-# sandbox
+source venv/bin/activate
