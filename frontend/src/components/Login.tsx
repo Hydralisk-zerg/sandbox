@@ -47,7 +47,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       if (csrfToken) {
         headers['X-CSRFToken'] = csrfToken;
       }
-
+  
       const response = await fetch('http://localhost:8000/api/login/', {
         method: 'POST',
         headers: headers,
@@ -56,18 +56,27 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
       });
       
       const responseData = await response.json();
-
+      console.log('Login response:', responseData); // Додайте цей лог
+  
       if (!response.ok) {
         throw new Error(responseData.detail || 'Network response was not ok');
       }
-
+  
+      // Перевіряємо наявність токену у відповіді
+      if (responseData.token) {
+        localStorage.setItem('token', responseData.token);
+      }
+  
       message.success('Login successful!');
       onLogin(username, password);
-      navigate('/home');
+      navigate('/home', { replace: true }); // Додаємо replace: true
     } catch (error: any) {
+      console.error('Login error:', error); // Додайте детальніший лог помилки
       message.error('Login failed: ' + error.message);
     }
   };
+  
+  
 
   const onFinish: FormProps<FieldType>['onFinish'] = (values) => {
     onLoginHandler(values.username, values.password);

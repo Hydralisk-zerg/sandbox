@@ -5,11 +5,13 @@ import {
   UserOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { Layout, Menu, Button, theme, Avatar, Space } from 'antd';
+import { Layout, Menu, Button, theme, Avatar, Space, Spin } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../services/apiClient';
 import { Employee } from '../interfaces/IUser';
 import { Outlet } from 'react-router-dom'; 
+import Logout from '../components/Logout';
+
 
 const { Header, Sider } = Layout;
 
@@ -37,14 +39,23 @@ const Layouts: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [currentUser, setCurrentUser] = useState<Employee | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
-  const navigate = useNavigate();
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
     const fetchEmployees = async () => {
       try {
+        setIsLoading(true);
         const data = await api.get<Employee[]>('/dictionary/get_employees/');
         setEmployees(data);
         if (data.length > 0) {
@@ -52,10 +63,38 @@ const Layouts: React.FC = () => {
         }
       } catch (error) {
         console.error('Error fetching employees:', error);
+        // Якщо отримуємо помилку 401, перенаправляємо на логін
+        if (error instanceof Error && error.message.includes('401')) {
+          localStorage.removeItem('token');
+          navigate('/login');
+        }
+      } finally {
+        setIsLoading(false);
       }
     };
+
     fetchEmployees();
-  }, []);
+  }, [navigate]);
+
+  // if (isLoading) {
+  //   return (
+  //     <div style={{ 
+  //       display: 'flex', 
+  //       justifyContent: 'center', 
+  //       alignItems: 'center', 
+  //       height: '100vh' 
+  //     }}>
+  //       <Spin size="large" />
+  //     </div>
+  //   );
+  // }
+
+  const getDisplayName = (employee: Employee): string => {
+    if (employee.first_name && employee.last_name) {
+      return `${employee.first_name} ${employee.last_name}`;
+    }
+    return employee.username;
+  };
 
   const handleUserClick = (userId: string) => {
     navigate(`/user/${userId}`);
@@ -69,16 +108,14 @@ const Layouts: React.FC = () => {
           onClick={() => handleUserClick(employee.id.toString())}
           style={{ cursor: 'pointer' }}
         >
-          {`${employee.first_name} ${employee.last_name}`}
+          {getDisplayName(employee)}
         </div>,
         employee.id.toString()
       ))
     ),
   ];
 
-  const handleLogout = () => {
-    navigate('/login');
-  };
+ 
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -109,21 +146,15 @@ const Layouts: React.FC = () => {
                   src={currentUser.avatar || undefined} 
                   icon={!currentUser.avatar && <UserOutlined />}
                 />
-                <span>{`${currentUser.first_name} ${currentUser.last_name}`}</span>
+                <span>{getDisplayName(currentUser)}</span>
               </>
             )}
-            <Button 
-              type="primary" 
+            <Logout 
               ghost 
-              icon={<LogoutOutlined />} 
-              onClick={handleLogout}
               style={{ marginLeft: '16px' }}
-            >
-              Logout
-            </Button>
+            />
           </Space>
         </Header>
-        {/* Добавьте Content и Outlet */}
         <Layout.Content style={{ margin: '24px 16px', padding: 24, background: colorBgContainer }}>
           <Outlet context={{ employees }} />
         </Layout.Content>

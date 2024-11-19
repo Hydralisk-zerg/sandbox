@@ -1,3 +1,5 @@
+import { LoginResponse, LogoutResponse } from "../interfaces/IUser";
+
 interface ApiClientConfig {
     baseURL: string;
   }
@@ -74,6 +76,13 @@ interface ApiClientConfig {
   
     delete<T>(endpoint: string) {
       return this.request<T>(endpoint, { method: 'DELETE' });
+    }
+    async login(username: string, password: string): Promise<LoginResponse> {
+      return this.post<LoginResponse>('api/login/', { username, password });
+    }
+  
+    async logout(): Promise<LogoutResponse> {
+      return this.post<LogoutResponse>('api/logout/', {});
     }
   }
   

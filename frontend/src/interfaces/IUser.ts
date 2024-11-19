@@ -26,3 +26,12 @@
     registration_address: string | null;
     living_address: string | null;
   }
+
+// types/auth.ts
+export interface LoginResponse {
+  detail: string;
+}
+
+export interface LogoutResponse {
+  detail: string;
+}

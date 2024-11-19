@@ -5,6 +5,8 @@ from django.middleware.csrf import get_token
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required, user_passes_test
 import json
+from django.contrib.auth import logout
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 @require_GET
 def csrf_token_view(request):
@@ -26,9 +28,11 @@ def login_view(request):
     except json.JSONDecodeError:
         return JsonResponse({'detail': 'Неверный формат JSON'}, status=400)
 
-# @login_required
-# @user_passes_test(lambda u: u.is_staff)
-# @require_GET
-# def get_users(request):
-#     users = list(User.objects.values('id', 'username'))
-#     return JsonResponse(users, safe=False)
+@require_POST
+@ensure_csrf_cookie
+def logout_view(request):
+    try:
+        logout(request)
+        return JsonResponse({'detail': 'Выход выполнен успешно'})
+    except Exception as e:
+        return JsonResponse({'detail': 'Ошибка при выходе из системы'}, status=500)

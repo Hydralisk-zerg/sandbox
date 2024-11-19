@@ -1,7 +1,7 @@
 from django.views.decorators.http import require_GET
 from django.http import JsonResponse
 from .models import Country, City, Terminal, Currency, Container, DangerClass, Incoterms, PackagingType, DeliveryType, Cargo, Employee 
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from django.http import JsonResponse
 
 # Получение списка всех справочников (только названия)
@@ -104,7 +104,7 @@ def get_all_dictionaries(request):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_staff)
+@permission_required('your_app.view_employees_list', raise_exception=True)
 @require_GET
 def get_employees(request):
     employees = Employee.objects.select_related('user', 'department', 'position').all()
@@ -115,12 +115,12 @@ def get_employees(request):
             'id': employee.user.id,
             'username': employee.user.username,
             'email': employee.user.email,
-            'first_name': employee.user.first_name,
-            'last_name': employee.user.last_name,
-            'additional_email': employee.additional_email,
+            'firstName': employee.user.first_name,
+            'lastName': employee.user.last_name,
+            'additionalEmail': employee.additional_email,
             'phone': employee.phone,
-            'additional_phone': employee.additional_phone,
-            'birth_date': employee.birth_date.strftime('%Y-%m-%d') if employee.birth_date else None,
+            'additionalPhone': employee.additional_phone,
+            'birthDate': employee.birth_date.strftime('%Y-%m-%d') if employee.birth_date else None,
             'department': {
                 'id': employee.department.id,
                 'name': employee.department.name
@@ -129,11 +129,11 @@ def get_employees(request):
                 'id': employee.position.id,
                 'name': employee.position.name
             },
-            'hire_date': employee.hire_date.strftime('%Y-%m-%d') if employee.hire_date else None,
-            'termination_date': employee.termination_date.strftime('%Y-%m-%d') if employee.termination_date else None,
+            'hireDate': employee.hire_date.strftime('%Y-%m-%d') if employee.hire_date else None,
+            'terminationDate': employee.termination_date.strftime('%Y-%m-%d') if employee.termination_date else None,
             'avatar': request.build_absolute_uri(employee.avatar.url) if employee.avatar else None,
-            'registration_address': employee.registration_address,
-            'living_address': employee.living_address
+            'registrationAddress': employee.registration_address,
+            'livingAddress': employee.living_address
         }
         employees_data.append(employee_data)
     
