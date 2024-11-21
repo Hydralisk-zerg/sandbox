@@ -22,7 +22,7 @@
     position: Position;
     hireDate: string | null;
     terminationDate: string | null;
-    avatar: string | null;
+    avatar: string;
     registrationAddress: string | null;
     livingAddress: string | null;
   }

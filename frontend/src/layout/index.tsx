@@ -12,6 +12,7 @@ import { Outlet } from 'react-router-dom';
 import Logout from '../components/Logout';
 
 
+
 const { Header, Sider } = Layout;
 
 type MenuItem = Required<MenuProps>['items'][number];
@@ -37,7 +38,7 @@ type ContextType = {
 const Layouts: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [currentUser, setCurrentUser] = useState<Employee | null>(null);
+  const [currentUser, setCurrentUser] = useState<Employee>();
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -45,19 +46,33 @@ const Layouts: React.FC = () => {
     token: { colorBgContainer },
   } = theme.useToken();
 
+  const getAvatarUrl = (avatarPath: string)  => {
+    if (!avatarPath) {
+      return ''; // Если аватар отсутствует, возвращаем пустую строку
+    }
+    const baseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000'; // Убедитесь, что базовый URL соответствует вашему серверу
+    return `${baseUrl}${avatarPath}`;
+  };
+      
+
   useEffect(() => {
-    const fetchEmployees = async () => {
+    const fetchEmployeesAndUser = async () => {
       try {
         setIsLoading(true);
+
+          // Делаем запрос для получения информации о текущем пользователе
+          const userData = await api.get<Employee>('/api/get_current_user/');
+          console.log(userData);
   
         // Получаем список сотрудников
-        const data = await api.get<Employee[]>('/dictionary/get_employees/');
-        console.log(data);
-        setEmployees(data);
+        const employeesData = await api.get<Employee[]>('/dictionary/get_employees/');
+        console.log(employeesData);
+        setEmployees(employeesData);
+        
+        
   
-        // Делаем запрос для получения информации о текущем пользователе
-   
-        setCurrentUser(data[0]);
+        // Устанавливаем данные текущего пользователя
+        setCurrentUser(userData);
       } catch (error) {
         console.error('Error fetching employees or current user:', error);
   
@@ -70,12 +85,12 @@ const Layouts: React.FC = () => {
       }
     };
   
-    fetchEmployees();
+    fetchEmployeesAndUser();
   }, [navigate]);
   
 
-
   const getDisplayName = (employee: Employee): string => {
+    console.log(employee.avatar)
     if (employee.firstName && employee.lastName) {
       return `${employee.firstName} ${employee.lastName}`;
     }
@@ -129,9 +144,9 @@ const Layouts: React.FC = () => {
             {currentUser && (
               <>
                 <Avatar 
-                  src={currentUser.avatar || undefined} 
-                  icon={!currentUser.avatar && <UserOutlined />}
-                />
+                    src={currentUser && getAvatarUrl(currentUser.avatar)} 
+                    icon={!currentUser?.avatar && <UserOutlined />}
+                  />
                 <span>{getDisplayName(currentUser)}</span>
               </>
             )}

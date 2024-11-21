@@ -12,7 +12,10 @@ const UserPage: React.FC = () => {
   
   return (
     <div>
-      <h2>{`${user.firstName} ${user.lastName}`}</h2>
+      {user.firstName && user.lastName ? 
+        <h2>{`${user.firstName} ${user.lastName}`}</h2>:
+        <h2>{`${user.username}`}</h2> }
+      
       <ul>
         <li>Email: {user.email || 'Not specified'}</li>
         <li>Additional Email: {user.additionalEmail || 'Not specified'}</li>
