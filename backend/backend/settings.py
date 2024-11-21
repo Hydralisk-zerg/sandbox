@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'login',
     'dictionary',
+    'telegramBot',
 ]
 
 MIDDLEWARE = [

@@ -56,10 +56,8 @@ const Layouts: React.FC = () => {
         setEmployees(data);
   
         // Делаем запрос для получения информации о текущем пользователе
-        const currentUserResponse = await api.get<Employee>('/auth/current_user/');
-        console.log('currentUserResponse', currentUserResponse)
-        // Устанавливаем текущего пользователя
-        setCurrentUser(currentUserResponse);
+   
+        setCurrentUser(data[0]);
       } catch (error) {
         console.error('Error fetching employees or current user:', error);
   

@@ -7,6 +7,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('login.urls')),
     path('dictionary/', include('dictionary.urls')), 
+    path('telegramBot/', include('telegramBot.urls')), 
 ]
 
 if settings.DEBUG:
