@@ -7,6 +7,7 @@ import UserPage from './pages/UserPage';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './components/AuthContext';
 
+
 // Компонент для захищених маршрутів
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
   const isAuthenticated = document.cookie.includes('token=') || localStorage.getItem('token');

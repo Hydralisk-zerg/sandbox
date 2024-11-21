@@ -9,21 +9,21 @@ const UserPage: React.FC = () => {
   const user = employees.find(emp => emp.id.toString() === userId);
 
   if (!user) return <div>User not found</div>;
-
+  
   return (
     <div>
-      <h2>{`${user.first_name} ${user.last_name}`}</h2>
+      <h2>{`${user.firstName} ${user.lastName}`}</h2>
       <ul>
-        <li>Email: {user.email}</li>
-        <li>Additional Email: {user.additional_email || 'Not specified'}</li>
+        <li>Email: {user.email || 'Not specified'}</li>
+        <li>Additional Email: {user.additionalEmail || 'Not specified'}</li>
         <li>Phone: {user.phone || 'Not specified'}</li>
-        <li>Additional Phone: {user.additional_phone || 'Not specified'}</li>
-        <li>Birth Date: {user.birth_date || 'Not specified'}</li>
+        <li>Additional Phone: {user.additionalPhone || 'Not specified'}</li>
+        <li>Birth Date: {user.birthDate || 'Not specified'}</li>
         <li>Department: {user.department.name}</li>
         <li>Position: {user.position.name}</li>
-        <li>Hire Date: {user.hire_date || 'Not specified'}</li>
-        <li>Registration Address: {user.registration_address || 'Not specified'}</li>
-        <li>Living Address: {user.living_address || 'Not specified'}</li>
+        <li>Hire Date: {user.hireDate || 'Not specified'}</li>
+        <li>Registration Address: {user.registrationAddress || 'Not specified'}</li>
+        <li>Living Address: {user.livingAddress || 'Not specified'}</li>
       </ul>
     </div>
   );

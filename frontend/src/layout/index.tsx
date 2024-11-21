@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
   HomeOutlined,
-  LogoutOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { Layout, Menu, Button, theme, Avatar, Space, Spin } from 'antd';
+import { Layout, Menu, theme, Avatar, Space} from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../services/apiClient';
 import { Employee } from '../interfaces/IUser';
@@ -47,51 +46,40 @@ const Layouts: React.FC = () => {
   } = theme.useToken();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
     const fetchEmployees = async () => {
       try {
         setIsLoading(true);
+  
+        // Получаем список сотрудников
         const data = await api.get<Employee[]>('/dictionary/get_employees/');
+        console.log(data);
         setEmployees(data);
-        if (data.length > 0) {
-          setCurrentUser(data[0]);
-        }
+  
+        // Делаем запрос для получения информации о текущем пользователе
+        const currentUserResponse = await api.get<Employee>('/auth/current_user/');
+        console.log('currentUserResponse', currentUserResponse)
+        // Устанавливаем текущего пользователя
+        setCurrentUser(currentUserResponse);
       } catch (error) {
-        console.error('Error fetching employees:', error);
-        // Якщо отримуємо помилку 401, перенаправляємо на логін
+        console.error('Error fetching employees or current user:', error);
+  
+        // Если ошибка 401 (неавторизован), перенаправляем на логин
         if (error instanceof Error && error.message.includes('401')) {
-          localStorage.removeItem('token');
           navigate('/login');
         }
       } finally {
         setIsLoading(false);
       }
     };
-
+  
     fetchEmployees();
   }, [navigate]);
+  
 
-  // if (isLoading) {
-  //   return (
-  //     <div style={{ 
-  //       display: 'flex', 
-  //       justifyContent: 'center', 
-  //       alignItems: 'center', 
-  //       height: '100vh' 
-  //     }}>
-  //       <Spin size="large" />
-  //     </div>
-  //   );
-  // }
 
   const getDisplayName = (employee: Employee): string => {
-    if (employee.first_name && employee.last_name) {
-      return `${employee.first_name} ${employee.last_name}`;
+    if (employee.firstName && employee.lastName) {
+      return `${employee.firstName} ${employee.lastName}`;
     }
     return employee.username;
   };

@@ -17,7 +17,8 @@ const Logout: React.FC<LogoutProps> = ({ className, style, ghost }) => {
   const handleLogout = async () => {
     try {
       await api.logout();
-      localStorage.removeItem('token');
+      localStorage.removeItem('csrfToken');
+
       message.success('Вихід успішний');
       navigate('/login');
     } catch (error: any) {

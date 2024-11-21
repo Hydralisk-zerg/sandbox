@@ -12,19 +12,19 @@
     id: number;
     username: string;
     email: string;
-    first_name: string;
-    last_name: string;
-    additional_email: string | null;
+    firstName: string;
+    lastName: string;
+    additionalEmail: string | null;
     phone: string | null;
-    additional_phone: string | null;
-    birth_date: string | null;
+    additionalPhone: string | null;
+    birthDate: string | null;
     department: Department;
     position: Position;
-    hire_date: string | null;
-    termination_date: string | null;
+    hireDate: string | null;
+    terminationDate: string | null;
     avatar: string | null;
-    registration_address: string | null;
-    living_address: string | null;
+    registrationAddress: string | null;
+    livingAddress: string | null;
   }
 
 // types/auth.ts
