@@ -35,3 +35,24 @@ export interface LoginResponse {
 export interface LogoutResponse {
   detail: string;
 }
+
+// export interface CurrentUser {
+//   id: number;
+//   username: string;
+//   email: string;
+//   firstName: string;
+//   lastName: string;
+//   additionalEmail: string | null;
+//   phone: string | null;
+//   additionalPhone: string | null;
+//   birthDate: string | null;
+//   department: string;
+//   position: string;
+//   hireDate: string | null;
+//   terminationDate: string | null;
+//   avatar: string;
+//   registrationAddress: string | null;
+//   livingAddress: string | null;
+//   groups: string[];
+//   permissions: string[];
+// }

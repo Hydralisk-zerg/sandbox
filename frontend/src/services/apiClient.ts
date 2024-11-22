@@ -1,4 +1,4 @@
-import { LoginResponse, LogoutResponse } from "../interfaces/IUser";
+import { Employee, LoginResponse, LogoutResponse } from "../interfaces/IUser";
 
 interface ApiClientConfig {
     baseURL: string;
@@ -83,6 +83,17 @@ interface ApiClientConfig {
   
     async logout(): Promise<LogoutResponse> {
       return this.post<LogoutResponse>('api/logout/', {});
+    }
+
+    async getEmployees(): Promise<Employee[]> {
+      return this.get<Employee[]>('dictionary/get_employees/');
+    }
+
+    async getCurrentUser(): Promise<Employee> {
+      return this.get<Employee>('api/get_current_user/');
+    }
+    async getDictianaryList(): Promise<string[]>{
+      return this.get('dictionary/get_dictionaries_list/');
     }
   }
   

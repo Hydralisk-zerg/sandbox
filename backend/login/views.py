@@ -59,7 +59,7 @@ def get_current_user(request):
             'position': employee.position.name,
             'hireDate': employee.hire_date.isoformat() if employee.hire_date else None,
             'terminationDate': employee.termination_date.isoformat() if employee.termination_date else None,
-            'avatar': employee.avatar.url,
+            'avatar': employee.avatar.url if employee.avatar and employee.avatar.name else None,
             'registrationAddress': employee.registration_address,
             'livingAddress': employee.living_address,
             'groups': list(user.groups.values_list('name', flat=True)),

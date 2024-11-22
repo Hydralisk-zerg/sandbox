@@ -104,7 +104,7 @@ def get_all_dictionaries(request):
 
 
 @login_required
-@permission_required('your_app.view_employees_list', raise_exception=True)
+@permission_required('dictionary.view_employees_list', raise_exception=True)
 @require_GET
 def get_employees(request):
     employees = Employee.objects.select_related('user', 'department', 'position').all()

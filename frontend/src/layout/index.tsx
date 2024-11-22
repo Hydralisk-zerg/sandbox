@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
+  DatabaseOutlined,
   HomeOutlined,
   UserOutlined,
 } from '@ant-design/icons';
@@ -10,8 +11,6 @@ import { api } from '../services/apiClient';
 import { Employee } from '../interfaces/IUser';
 import { Outlet } from 'react-router-dom'; 
 import Logout from '../components/Logout';
-
-
 
 const { Header, Sider } = Layout;
 
@@ -40,6 +39,7 @@ const Layouts: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [currentUser, setCurrentUser] = useState<Employee>();
   const [isLoading, setIsLoading] = useState(true);
+  const [dictionaryLists, setDictionaryLists] = useState<string[]>([])
   const navigate = useNavigate();
 
   const {
@@ -53,41 +53,48 @@ const Layouts: React.FC = () => {
     const baseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000'; // Убедитесь, что базовый URL соответствует вашему серверу
     return `${baseUrl}${avatarPath}`;
   };
-      
 
   useEffect(() => {
     const fetchEmployeesAndUser = async () => {
       try {
         setIsLoading(true);
-
-          // Делаем запрос для получения информации о текущем пользователе
-          const userData = await api.get<Employee>('/api/get_current_user/');
-          console.log(userData);
-  
-        // Получаем список сотрудников
-        const employeesData = await api.get<Employee[]>('/dictionary/get_employees/');
-        console.log(employeesData);
-        setEmployees(employeesData);
-        
-        
-  
-        // Устанавливаем данные текущего пользователя
-        setCurrentUser(userData);
+        // Делаем запрос для получения информации о текущем пользователе
+        setCurrentUser(await api.getCurrentUser());
       } catch (error) {
         console.error('Error fetching employees or current user:', error);
-  
-        // Если ошибка 401 (неавторизован), перенаправляем на логин
-        if (error instanceof Error && error.message.includes('401')) {
-          navigate('/login');
-        }
-      } finally {
-        setIsLoading(false);
+      };
+      try {
+        setIsLoading(true);
+        // Получаем архив с названиями справочников
+
+        console.log(setDictionaryLists(await api.getDictianaryList()));
+      } catch (error) {
+        console.error('Error fetching dictionaries', error);
+      };
+      try {
+        setIsLoading(true);
+        // Получаем список сотрудников
+        setEmployees(await api.getEmployees());
+      } catch (error) {
+        console.error('Error fetching employees or current users:', error);
+      // Если ошибка 401 (неавторизован), перенаправляем на логин
+      if (error instanceof Error && error.message.includes('401')) {
+        navigate('/login');
       }
-    };
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
     fetchEmployeesAndUser();
   }, [navigate]);
   
+  const formatDictionaryName = (name: string): string => {
+    return name
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
   const getDisplayName = (employee: Employee): string => {
     console.log(employee.avatar)
@@ -114,9 +121,26 @@ const Layouts: React.FC = () => {
         employee.id.toString()
       ))
     ),
+    getItem('Dictionary', 'sub2', <DatabaseOutlined />, 
+      // dictionaryLists.map((dictionaryName) => {
+      //   console.log('Создание пункта меню для:', dictionaryName);
+      //   return getItem(
+      //     <div 
+      //       onClick={() => handleDictionaryClick(dictionaryName)}
+      //       style={{ cursor: 'pointer' }}
+      //     >
+      //       {formatDictionaryName(dictionaryName)}
+      //     </div>,
+      //     dictionaryName
+      //   );
+      // })
+    ),
   ];
 
- 
+  const handleDictionaryClick = (dictionaryName: string) => {
+    navigate(`/dictionary/${dictionaryName}`);
+    // или любая другая логика
+  };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -166,3 +190,4 @@ const Layouts: React.FC = () => {
 
 export default Layouts;
 export type { ContextType };
+ 

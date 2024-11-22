@@ -4,7 +4,7 @@ from . import views
 app_name = 'dictionaries'
 
 urlpatterns = [
-    path('list/', views.get_dictionaries_list, name='dictionaries_list'),
+    path('get_dictionaries_list/', views.get_dictionaries_list, name='dictionaries_list'),
     path('countries/', views.get_countries, name='countries'),
     path('cities/', views.get_cities, name='cities'),
     path('terminals/', views.get_terminals, name='terminals'),
