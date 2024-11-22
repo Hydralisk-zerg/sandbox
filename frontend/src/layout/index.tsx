@@ -39,7 +39,7 @@ const Layouts: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [currentUser, setCurrentUser] = useState<Employee>();
   const [isLoading, setIsLoading] = useState(true);
-  const [dictionaryLists, setDictionaryLists] = useState<string[]>([])
+  const [dictionaryLists, setDictionaryLists] = useState([])
   const navigate = useNavigate();
 
   const {
@@ -66,8 +66,8 @@ const Layouts: React.FC = () => {
       try {
         setIsLoading(true);
         // Получаем архив с названиями справочников
-
-        console.log(setDictionaryLists(await api.getDictianaryList()));
+        const x: any = await api.getDictianaryList()
+        setDictionaryLists(x['dictionaries']);
       } catch (error) {
         console.error('Error fetching dictionaries', error);
       };
@@ -97,7 +97,6 @@ const Layouts: React.FC = () => {
   };
 
   const getDisplayName = (employee: Employee): string => {
-    console.log(employee.avatar)
     if (employee.firstName && employee.lastName) {
       return `${employee.firstName} ${employee.lastName}`;
     }
@@ -122,18 +121,17 @@ const Layouts: React.FC = () => {
       ))
     ),
     getItem('Dictionary', 'sub2', <DatabaseOutlined />, 
-      // dictionaryLists.map((dictionaryName) => {
-      //   console.log('Создание пункта меню для:', dictionaryName);
-      //   return getItem(
-      //     <div 
-      //       onClick={() => handleDictionaryClick(dictionaryName)}
-      //       style={{ cursor: 'pointer' }}
-      //     >
-      //       {formatDictionaryName(dictionaryName)}
-      //     </div>,
-      //     dictionaryName
-      //   );
-      // })
+      dictionaryLists.map((dictionaryName) => {
+        return getItem(
+          <div 
+            onClick={() => handleDictionaryClick(dictionaryName)}
+            style={{ cursor: 'pointer' }}
+          >
+            {formatDictionaryName(dictionaryName)}
+          </div>,
+          dictionaryName
+        );
+      })
     ),
   ];
 
