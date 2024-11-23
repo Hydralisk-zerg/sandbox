@@ -26,7 +26,7 @@ def get_dictionaries_list(request):
 @login_required
 @require_GET
 def get_countries(request):
-    countries = Country.objects.all().values('id', 'name_en', 'name_uk', 'alpha2', 'alpha3')
+    countries = Country.objects.all().values('id', 'name_en', 'name_uk', 'alpha2', 'alpha3', 'numeric_code')
     return JsonResponse({'countries': list(countries)})
 
 @login_required

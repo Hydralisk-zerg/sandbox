@@ -95,6 +95,9 @@ interface ApiClientConfig {
     async getDictianaryList(): Promise<string[]>{
       return this.get('dictionary/get_dictionaries_list/');
     }
+    async getDictianaryInfoPage(name: any): Promise<object>{
+      return this.get(`dictionary/${name}/`);
+    }
   }
   
   // Создаем экземпляр API клиента

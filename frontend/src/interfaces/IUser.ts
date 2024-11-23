@@ -36,23 +36,11 @@ export interface LogoutResponse {
   detail: string;
 }
 
-// export interface CurrentUser {
-//   id: number;
-//   username: string;
-//   email: string;
-//   firstName: string;
-//   lastName: string;
-//   additionalEmail: string | null;
-//   phone: string | null;
-//   additionalPhone: string | null;
-//   birthDate: string | null;
-//   department: string;
-//   position: string;
-//   hireDate: string | null;
-//   terminationDate: string | null;
-//   avatar: string;
-//   registrationAddress: string | null;
-//   livingAddress: string | null;
-//   groups: string[];
-//   permissions: string[];
-// }
+export interface CountryData {
+  id: number;
+  name_en: string;
+  name_uk: string;
+  alpha2: string;
+  alpha3: string;
+  numeric?: string; // Опционально, если это поле не приходит с бэкенда
+}
