@@ -92,10 +92,10 @@ interface ApiClientConfig {
     async getCurrentUser(): Promise<Employee> {
       return this.get<Employee>('api/get_current_user/');
     }
-    async getDictianaryList(): Promise<string[]>{
+    async getDictianaryList(): Promise<any>{
       return this.get('dictionary/get_dictionaries_list/');
     }
-    async getDictianaryInfoPage(name: any): Promise<object>{
+    async getDictianaryInfoPage(name: any): Promise<any>{
       return this.get(`dictionary/${name}/`);
     }
   }

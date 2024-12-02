@@ -14,14 +14,15 @@ const DictionaryPage: React.FC = () => {
   const [data, setData] = useState<CountryData[]>([]);
   // const [loading, setLoading] = useState(true);
 
+
   useEffect(() => {
     const fetchData = async () => {
-      const response = await api.getDictianaryInfoPage(dictionaryName) as ApiResponse;
-      setData(response.countries);
+    const response = await api.getDictianaryInfoPage(dictionaryName) as ApiResponse;
+    setData(response.countries);
+      
     }
     fetchData();
   }, [dictionaryName]);
-
 
     const columns: ColumnsType<CountryData> = [
       {
@@ -51,6 +52,8 @@ const DictionaryPage: React.FC = () => {
       },
 
     ];
+  
+    
   
   return (
     <>

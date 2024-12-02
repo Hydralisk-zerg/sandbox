@@ -39,9 +39,10 @@ const Layouts: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [currentUser, setCurrentUser] = useState<Employee>();
   const [isLoading, setIsLoading] = useState(true);
-  const [dictionaryLists, setDictionaryLists] = useState([])
+  const [dictionaryLists, setDictionaryLists] = useState<any[]>([])
   const navigate = useNavigate();
 
+  console.log(isLoading)
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -121,7 +122,7 @@ const Layouts: React.FC = () => {
       ))
     ),
     getItem('Dictionary', 'sub2', <DatabaseOutlined />, 
-      dictionaryLists.map((dictionaryName) => {
+      dictionaryLists.map((dictionaryName: any) => {
         return getItem(
           <div 
             onClick={() => handleDictionaryClick(dictionaryName)}
@@ -135,6 +136,7 @@ const Layouts: React.FC = () => {
     ),
   ];
 
+  console.log(dictionaryLists)
   const handleDictionaryClick = (dictionaryName: string) => {
     navigate(`/dictionary/${dictionaryName}`);
     // или любая другая логика
