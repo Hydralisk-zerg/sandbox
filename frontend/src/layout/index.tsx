@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import {
   DatabaseOutlined,
   HomeOutlined,
+  QuestionOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { Layout, Menu, theme, Avatar, Space} from 'antd';
+import { Layout, Menu, theme, Avatar, Space } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../services/apiClient';
 import { Employee } from '../interfaces/interfase';
-import { Outlet } from 'react-router-dom'; 
+import { Outlet } from 'react-router-dom';
 import Logout from '../components/Logout';
 
 const { Header, Sider } = Layout;
@@ -42,11 +43,13 @@ const Layouts: React.FC = () => {
   const [dictionaryLists, setDictionaryLists] = useState<any[]>([])
   const navigate = useNavigate();
 
+  console.log(isLoading)
+
   const {
     token: { colorBgContainer },
   } = theme.useToken();
 
-  const getAvatarUrl = (avatarPath: string)  => {
+  const getAvatarUrl = (avatarPath: string) => {
     if (!avatarPath) {
       return '';
     }
@@ -81,10 +84,10 @@ const Layouts: React.FC = () => {
         setIsLoading(false);
       }
     };
-  
+
     fetchEmployeesAndUser();
   }, [navigate]);
-  
+
   const formatDictionaryName = (name: string): string => {
     return name
       .split('_')
@@ -105,9 +108,9 @@ const Layouts: React.FC = () => {
 
   const items: MenuItem[] = [
     getItem(<Link to="/home">Home</Link>, '0', <HomeOutlined />),
-    getItem('Users', 'sub1', <UserOutlined />, 
+    getItem('Users', 'sub1', <UserOutlined />,
       employees.map(employee => getItem(
-        <div 
+        <div
           onClick={() => handleUserClick(employee.id.toString())}
           style={{ cursor: 'pointer' }}
         >
@@ -116,10 +119,10 @@ const Layouts: React.FC = () => {
         employee.id.toString()
       ))
     ),
-    getItem('Dictionary', 'sub2', <DatabaseOutlined />, 
+    getItem('Dictionary', 'sub2', <DatabaseOutlined />,
       dictionaryLists.map((dictionaryName: any) => {
         return getItem(
-          <div 
+          <div
             onClick={() => handleDictionaryClick(dictionaryName)}
             style={{ cursor: 'pointer' }}
           >
@@ -129,6 +132,16 @@ const Layouts: React.FC = () => {
         );
       })
     ),
+    getItem('Task', 'sub3', <QuestionOutlined />,[
+      getItem(<div
+        onClick={() => console.log('hello world')}
+      >1</div>, '31', <HomeOutlined />
+    ),
+    getItem(<div
+      onClick={() => console.log('hello world')}
+    >2</div>, '32', <HomeOutlined />
+  ),
+  ])
   ];
 
   const handleDictionaryClick = (dictionaryName: string) => {
@@ -148,31 +161,31 @@ const Layouts: React.FC = () => {
           />
         </Sider>
         <Layout>
-          <Header 
-            style={{ 
-              padding: 0, 
-              background: colorBgContainer, 
-              display: 'flex', 
-              justifyContent: 'flex-end', 
-              alignItems: 'center', 
-              paddingRight: '16px' 
+          <Header
+            style={{
+              padding: 0,
+              background: colorBgContainer,
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              paddingRight: '16px'
             }}
           >
-            <Space>
-              {currentUser && (
-                <>
-                  <Avatar 
-                    src={currentUser && getAvatarUrl(currentUser.avatar)} 
-                    icon={!currentUser?.avatar && <UserOutlined />}
-                  />
-                  <span>{getDisplayName(currentUser)}</span>
-                </>
-              )}
-              <Logout 
-                ghost 
-                style={{ marginLeft: '16px' }}
-              />
-            </Space>
+           <Space>
+  {currentUser && (
+    <>
+      <Avatar 
+        src={getAvatarUrl(currentUser.avatar) || undefined}
+        icon={!getAvatarUrl(currentUser.avatar) ? <UserOutlined /> : null}
+      />
+      <span>{getDisplayName(currentUser)}</span>
+    </>
+  )}
+  <Logout 
+    ghost 
+    style={{ marginLeft: '16px' }}
+  />
+</Space>
           </Header>
           <Layout.Content style={{ margin: '24px 16px', padding: 24, background: colorBgContainer }}>
             <Outlet context={{ employees }} />
