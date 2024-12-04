@@ -2,7 +2,7 @@ from django.views.decorators.http import require_GET
 from django.http import JsonResponse
 from .models import Country, City, Terminal, Currency, Container, DangerClass, Incoterms, PackagingType, DeliveryType, Cargo, Employee 
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
-from django.http import JsonResponse
+from django.core import serializers
 
 # Получение списка всех справочников (только названия)
 @login_required
@@ -23,22 +23,82 @@ def get_dictionaries_list(request):
     return JsonResponse({'dictionaries': dictionaries})
 
 # Получение данных отдельных справочников
+# @login_required
+@require_GET
+def get_danger_classes(request):
+    danger_classes = DangerClass.objects.all().values(
+        'id', 'class_number', 'sub_class', 'un_code', 'description'
+    )
+    return JsonResponse({'danger_classes': list(danger_classes)})
+
+@login_required
+@require_GET
+def get_departments(request):
+    departments = Department.objects.all().values('id', 'name')
+    return JsonResponse({'departments': list(departments)})
+
+@login_required
+@require_GET
+def get_positions(request):
+    positions = Position.objects.all().values(
+        'id', 
+        'name',
+        'department__name'
+    )
+    return JsonResponse({'positions': list(positions)})
+
+@login_required
+@require_GET
+def get_employees(request):
+    employees = Employee.objects.all().values(
+        'id',
+        'user__first_name',
+        'user__last_name',
+        'additional_email',
+        'phone',
+        'additional_phone',
+        'birth_date',
+        'department__name',
+        'position__name',
+        'hire_date',
+        'termination_date',
+        'avatar',
+        'registration_address',
+        'living_address'
+    )
+    return JsonResponse({'employees': list(employees)})
+
 @login_required
 @require_GET
 def get_countries(request):
-    countries = Country.objects.all().values('id', 'name_en', 'name_uk', 'alpha2', 'alpha3', 'numeric_code')
+    countries = Country.objects.all().values(
+        'id', 'name_en', 'name_uk', 'alpha2', 'alpha3', 'numeric_code'
+    )
     return JsonResponse({'countries': list(countries)})
 
 @login_required
 @require_GET
 def get_cities(request):
-    cities = City.objects.all().values('id', 'name_en', 'name_uk', 'country__name_en')
+    cities = City.objects.all().values(
+        'id',
+        'name_en',
+        'name_uk',
+        'country__name_en'
+    )
     return JsonResponse({'cities': list(cities)})
 
 @login_required
 @require_GET
 def get_terminals(request):
-    terminals = Terminal.objects.all().values('id', 'name_en', 'name_uk', 'terminal_type')
+    terminals = Terminal.objects.all().values(
+        'id',
+        'name_en',
+        'name_uk',
+        'terminal_type',
+        'description',
+        'city__name_en',
+        'country__name_en'
+    )
     return JsonResponse({'terminals': list(terminals)})
 
 @login_required
@@ -50,14 +110,11 @@ def get_currencies(request):
 @login_required
 @require_GET
 def get_containers(request):
-    containers = Container.objects.all().values('id', 'size', 'container_type')
+    containers = Container.objects.all().values(
+        'id', 'size', 'container_type', 'length', 'width', 
+        'height', 'internal_volume'
+    )
     return JsonResponse({'containers': list(containers)})
-
-@login_required
-@require_GET
-def get_danger_classes(request):
-    danger_classes = DangerClass.objects.all().values('id', 'class_number', 'description')
-    return JsonResponse({'danger_classes': list(danger_classes)})
 
 @login_required
 @require_GET
@@ -68,19 +125,33 @@ def get_incoterms(request):
 @login_required
 @require_GET
 def get_packaging_types(request):
-    packaging_types = PackagingType.objects.all().values('id', 'name_en', 'name_uk')
+    packaging_types = PackagingType.objects.all().values(
+        'id', 'name_en', 'name_uk', 'description'
+    )
     return JsonResponse({'packaging_types': list(packaging_types)})
 
 @login_required
 @require_GET
 def get_delivery_types(request):
-    delivery_types = DeliveryType.objects.all().values('id', 'short_name', 'full_name')
+    delivery_types = DeliveryType.objects.all().values(
+        'id', 'short_name', 'full_name', 'description'
+    )
     return JsonResponse({'delivery_types': list(delivery_types)})
 
 @login_required
 @require_GET
 def get_cargos(request):
-    cargos = Cargo.objects.all().values('id', 'name_en', 'name_uk', 'cargo_code')
+    cargos = Cargo.objects.all().values(
+        'id',
+        'name_en',
+        'name_uk',
+        'cargo_code',
+        'is_dangerous',
+        'danger_class__class_number',
+        'danger_class__sub_class',
+        'danger_class__un_code',
+        'description'
+    )
     return JsonResponse({'cargos': list(cargos)})
 
 # Получение всех справочников одним запросом
