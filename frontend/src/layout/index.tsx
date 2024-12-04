@@ -8,7 +8,7 @@ import type { MenuProps } from 'antd';
 import { Layout, Menu, theme, Avatar, Space} from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../services/apiClient';
-import { Employee } from '../interfaces/IUser';
+import { Employee } from '../interfaces/interfase';
 import { Outlet } from 'react-router-dom'; 
 import Logout from '../components/Logout';
 
@@ -42,16 +42,15 @@ const Layouts: React.FC = () => {
   const [dictionaryLists, setDictionaryLists] = useState<any[]>([])
   const navigate = useNavigate();
 
-  console.log(isLoading)
   const {
     token: { colorBgContainer },
   } = theme.useToken();
 
   const getAvatarUrl = (avatarPath: string)  => {
     if (!avatarPath) {
-      return ''; // Если аватар отсутствует, возвращаем пустую строку
+      return '';
     }
-    const baseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000'; // Убедитесь, что базовый URL соответствует вашему серверу
+    const baseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
     return `${baseUrl}${avatarPath}`;
   };
 
@@ -59,14 +58,12 @@ const Layouts: React.FC = () => {
     const fetchEmployeesAndUser = async () => {
       try {
         setIsLoading(true);
-        // Делаем запрос для получения информации о текущем пользователе
         setCurrentUser(await api.getCurrentUser());
       } catch (error) {
         console.error('Error fetching employees or current user:', error);
       };
       try {
         setIsLoading(true);
-        // Получаем архив с названиями справочников
         const x: any = await api.getDictianaryList()
         setDictionaryLists(x['dictionaries']);
       } catch (error) {
@@ -74,18 +71,16 @@ const Layouts: React.FC = () => {
       };
       try {
         setIsLoading(true);
-        // Получаем список сотрудников
         setEmployees(await api.getEmployees());
       } catch (error) {
         console.error('Error fetching employees or current users:', error);
-      // Если ошибка 401 (неавторизован), перенаправляем на логин
-      if (error instanceof Error && error.message.includes('401')) {
-        navigate('/login');
+        if (error instanceof Error && error.message.includes('401')) {
+          navigate('/login');
+        }
+      } finally {
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
   
     fetchEmployeesAndUser();
   }, [navigate]);
@@ -136,58 +131,57 @@ const Layouts: React.FC = () => {
     ),
   ];
 
-  console.log(dictionaryLists)
   const handleDictionaryClick = (dictionaryName: string) => {
     navigate(`/dictionary/${dictionaryName}`);
-    // или любая другая логика
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-        <div className="demo-logo-vertical" />
-        <Menu
-          theme="dark"
-          defaultSelectedKeys={['0']}
-          mode="inline"
-          items={items}
-        />
-      </Sider>
-      <Layout>
-        <Header 
-          style={{ 
-            padding: 0, 
-            background: colorBgContainer, 
-            display: 'flex', 
-            justifyContent: 'flex-end', 
-            alignItems: 'center', 
-            paddingRight: '16px' 
-          }}
-        >
-          <Space>
-            {currentUser && (
-              <>
-                <Avatar 
+    <div style={{ overflowX: 'auto' }}>
+      <Layout style={{ minHeight: '100vh', minWidth: '1000px' }}>
+        <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
+          <div className="demo-logo-vertical" />
+          <Menu
+            theme="dark"
+            defaultSelectedKeys={['0']}
+            mode="inline"
+            items={items}
+          />
+        </Sider>
+        <Layout>
+          <Header 
+            style={{ 
+              padding: 0, 
+              background: colorBgContainer, 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              alignItems: 'center', 
+              paddingRight: '16px' 
+            }}
+          >
+            <Space>
+              {currentUser && (
+                <>
+                  <Avatar 
                     src={currentUser && getAvatarUrl(currentUser.avatar)} 
                     icon={!currentUser?.avatar && <UserOutlined />}
                   />
-                <span>{getDisplayName(currentUser)}</span>
-              </>
-            )}
-            <Logout 
-              ghost 
-              style={{ marginLeft: '16px' }}
-            />
-          </Space>
-        </Header>
-        <Layout.Content style={{ margin: '24px 16px', padding: 24, background: colorBgContainer }}>
-          <Outlet context={{ employees }} />
-        </Layout.Content>
+                  <span>{getDisplayName(currentUser)}</span>
+                </>
+              )}
+              <Logout 
+                ghost 
+                style={{ marginLeft: '16px' }}
+              />
+            </Space>
+          </Header>
+          <Layout.Content style={{ margin: '24px 16px', padding: 24, background: colorBgContainer }}>
+            <Outlet context={{ employees }} />
+          </Layout.Content>
+        </Layout>
       </Layout>
-    </Layout>
+    </div>
   );
 };
 
 export default Layouts;
 export type { ContextType };
- 

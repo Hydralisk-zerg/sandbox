@@ -44,3 +44,12 @@ export interface CountryData {
   alpha3: string;
   numeric?: string; // Опционально, если это поле не приходит с бэкенда
 }
+
+export interface GenericDataType {
+  id: number;
+  [key: string]: any;
+}
+
+export interface ApiResponse {
+  [key: string]: GenericDataType[];
+}

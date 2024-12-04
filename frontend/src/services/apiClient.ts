@@ -1,4 +1,4 @@
-import { Employee, LoginResponse, LogoutResponse } from "../interfaces/IUser";
+import { Employee, LoginResponse, LogoutResponse } from "../interfaces/interfase";
 
 interface ApiClientConfig {
     baseURL: string;

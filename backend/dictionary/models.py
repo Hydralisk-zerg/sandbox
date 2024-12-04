@@ -155,7 +155,7 @@ class Container(models.Model):
 
 class Incoterms(models.Model):
     abbreviation = models.CharField(max_length=3, verbose_name="Abbreviation", unique=True)
-    description = models.TextField(verbose_name="Description")
+    description = models.TextField(blank=True, verbose_name="Description")
 
     class Meta:
         verbose_name = "Incoterms"
@@ -168,7 +168,7 @@ class Incoterms(models.Model):
 class PackagingType(models.Model):
     name_en = models.CharField(max_length=100, verbose_name="Name (English)")
     name_uk = models.CharField(max_length=100, verbose_name="Name (Ukrainian)")
-    description = models.TextField(verbose_name="Description")
+    description = models.TextField(blank=True, verbose_name="Description")
 
     class Meta:
         verbose_name = "Packaging Type"
@@ -181,7 +181,7 @@ class PackagingType(models.Model):
 class DeliveryType(models.Model):
     short_name = models.CharField(max_length=50, verbose_name="Short Name")
     full_name = models.CharField(max_length=200, verbose_name="Full Name")
-    description = models.TextField(verbose_name="Description")
+    description = models.TextField(blank=True, verbose_name="Description")
 
     class Meta:
         verbose_name = "Delivery Type"
@@ -212,7 +212,7 @@ class Cargo(models.Model):
         blank=True,
         verbose_name="Danger Class"
     )
-    description = models.TextField(verbose_name="Description")
+    description = models.TextField(blank=True, verbose_name="Description")
 
     class Meta:
         verbose_name = "Cargo"
