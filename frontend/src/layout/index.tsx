@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
+  AppstoreAddOutlined,
   DatabaseOutlined,
   HomeOutlined,
   QuestionOutlined,
+  UnorderedListOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
@@ -95,6 +97,7 @@ const Layouts: React.FC = () => {
       .join(' ');
   };
 
+
   const getDisplayName = (employee: Employee): string => {
     if (employee.firstName && employee.lastName) {
       return `${employee.firstName} ${employee.lastName}`;
@@ -132,16 +135,10 @@ const Layouts: React.FC = () => {
         );
       })
     ),
-    getItem('Task', 'sub3', <QuestionOutlined />,[
-      getItem(<div
-        onClick={() => console.log('hello world')}
-      >1</div>, '31', <HomeOutlined />
-    ),
-    getItem(<div
-      onClick={() => console.log('hello world')}
-    >2</div>, '32', <HomeOutlined />
-  ),
-  ])
+    getItem('Task', 'sub3', <QuestionOutlined />, [
+      getItem(<Link to="/task">Create task</Link>, '31', <AppstoreAddOutlined />),
+      getItem(<Link to="/task">Progress task</Link>, '32', <UnorderedListOutlined />),
+    ])
   ];
 
   const handleDictionaryClick = (dictionaryName: string) => {
@@ -149,50 +146,60 @@ const Layouts: React.FC = () => {
   };
 
   return (
-    <div style={{ overflowX: 'auto' }}>
-      <Layout style={{ minHeight: '100vh', minWidth: '1000px' }}>
-        <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
-          <div className="demo-logo-vertical" />
-          <Menu
-            theme="dark"
-            defaultSelectedKeys={['0']}
-            mode="inline"
-            items={items}
-          />
-        </Sider>
-        <Layout>
-          <Header
-            style={{
-              padding: 0,
-              background: colorBgContainer,
-              display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              paddingRight: '16px'
-            }}
-          >
-           <Space>
-  {currentUser && (
-    <>
-      <Avatar 
-        src={getAvatarUrl(currentUser.avatar) || undefined}
-        icon={!getAvatarUrl(currentUser.avatar) ? <UserOutlined /> : null}
-      />
-      <span>{getDisplayName(currentUser)}</span>
-    </>
-  )}
-  <Logout 
-    ghost 
-    style={{ marginLeft: '16px' }}
-  />
-</Space>
-          </Header>
-          <Layout.Content style={{ margin: '24px 16px', padding: 24, background: colorBgContainer }}>
-            <Outlet context={{ employees }} />
-          </Layout.Content>
-        </Layout>
+    <Layout style={{ minHeight: '99vh' }}>
+      <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
+        <div
+          style={{
+            height: 64,
+            margin: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(255, 255, 255, 0.1)'
+          }}
+        >
+          {/* Место для логотипа */}
+        </div>
+        <Menu
+          theme="dark"
+          defaultSelectedKeys={['0']}
+          mode="inline"
+          items={items}
+        />
+      </Sider>
+      <Layout>
+        <Header
+          style={{
+            padding: 0,
+            background: colorBgContainer,
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            paddingRight: '16px'
+          }}
+        >
+          <Space>
+            {currentUser && (
+              <>
+                <Avatar
+                  src={getAvatarUrl(currentUser.avatar) || undefined}
+                  icon={!getAvatarUrl(currentUser.avatar) ? <UserOutlined /> : null}
+                />
+                <span>{getDisplayName(currentUser)}</span>
+              </>
+            )}
+            <Logout
+              ghost
+              style={{ marginLeft: '16px' }}
+            />
+          </Space>
+        </Header>
+        <Layout.Content style={{ margin: '24px 16px', padding: 24, background: colorBgContainer }}>
+          <Outlet context={{ employees }} />
+        </Layout.Content>
       </Layout>
-    </div>
+    </Layout>
+
   );
 };
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useOutletContext } from 'react-router-dom';
-import type { ContextType } from '../../layout'; // путь может отличаться
+import type { ContextType } from '../../layout';
 
 const UserPage: React.FC = () => {
   const { userId } = useParams();

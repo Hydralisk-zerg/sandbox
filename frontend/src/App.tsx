@@ -7,6 +7,7 @@ import UserPage from './pages/UserPage';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './components/AuthContext';
 import DictionaryPage from './pages/dictionary';
+import TaskPage from './pages/task';
 
 
 // Компонент для захищених маршрутів
@@ -42,6 +43,7 @@ const App: React.FC = () => {
             <Route path="user/:userId" element={<UserPage />} />
             <Route path="dictionary/:dictionaryName" element={<DictionaryPage />} />
             <Route path="" element={<Navigate to="/home" replace />} />
+            <Route path="task" element={<TaskPage/>} />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

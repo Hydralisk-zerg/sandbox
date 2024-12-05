@@ -42,7 +42,7 @@ export interface CountryData {
   name_uk: string;
   alpha2: string;
   alpha3: string;
-  numeric?: string; // Опционально, если это поле не приходит с бэкенда
+  numeric?: string; 
 }
 
 export interface GenericDataType {
@@ -52,4 +52,21 @@ export interface GenericDataType {
 
 export interface ApiResponse {
   [key: string]: GenericDataType[];
+}
+
+export interface Template {
+  id?: number;
+  name: string;
+  created_by: number; // ID пользователя
+  created_at: string; // ISO строка даты
+  task_groups: {
+    department_id: number | null;
+    employee_id: number | null;
+    tasks: string[];
+  }[];
+}
+
+export interface TemplateState {
+  templates: Template[];
+  setTemplates: (templates: Template[]) => void;
 }
