@@ -8,6 +8,9 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from './components/AuthContext';
 import DictionaryPage from './pages/dictionary';
 import TaskPage from './pages/task';
+import Project from './pages/project';
+import Event from './pages/event';
+import Template from './pages/template';
 
 
 // Компонент для захищених маршрутів
@@ -23,7 +26,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
 
 const App: React.FC = () => {
   const handleLogin = (username: string, password: string) => {
-    // Тут можна додати додаткову логіку при вході
     console.log('Logged in:', username);
   };
   return (
@@ -44,6 +46,9 @@ const App: React.FC = () => {
             <Route path="dictionary/:dictionaryName" element={<DictionaryPage />} />
             <Route path="" element={<Navigate to="/home" replace />} />
             <Route path="task" element={<TaskPage/>} />
+            <Route path="event" element={<Event/>} />
+            <Route path="template" element={<Template/>} />
+            <Route path="project" element={<Project/>} />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
-  AppstoreAddOutlined,
+  AlertOutlined,
+  BarsOutlined,
+  BookOutlined,
+  BuildOutlined,
   DatabaseOutlined,
   HomeOutlined,
-  QuestionOutlined,
-  UnorderedListOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
@@ -135,9 +136,11 @@ const Layouts: React.FC = () => {
         );
       })
     ),
-    getItem('Task', 'sub3', <QuestionOutlined />, [
-      getItem(<Link to="/task">Create task</Link>, '31', <AppstoreAddOutlined />),
-      getItem(<Link to="/task">Progress task</Link>, '32', <UnorderedListOutlined />),
+    getItem('Logs', 'sub3', <BookOutlined />, [
+      getItem(<Link to="/project">Projects</Link>, '31', <DatabaseOutlined />),
+      getItem(<Link to="/task">Tasks</Link>, '32', <BarsOutlined />),
+      getItem(<Link to="/event">Events</Link>, '33', <AlertOutlined />),
+      getItem(<Link to="/template">Templates</Link>, '34', <BuildOutlined />),
     ])
   ];
 
@@ -146,7 +149,7 @@ const Layouts: React.FC = () => {
   };
 
   return (
-    <Layout style={{ minHeight: '99vh' }}>
+    <Layout style={{ minHeight: '99vh', minWidth: '1450px'}}>
       <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
         <div
           style={{
