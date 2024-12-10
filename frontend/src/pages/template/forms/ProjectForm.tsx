@@ -1,28 +1,60 @@
-// ProjectForm.tsx
+// forms/ProjectForm.tsx
 import React from 'react';
-import BaseForm from './BaseForm';
+import { Input, Select } from 'antd';
+import { BaseForm } from './BaseForm';
+import { Task, Event } from '../types';
 
 interface ProjectFormProps {
-  onClose: () => void;
   onSubmit: (values: any) => void;
+  onClose: () => void;
+  tasks: Task[];
+  events: Event[];
 }
 
-interface ProjectFormValues {
-  projectName: string;
-  description: string;
-}
-
-const ProjectForm: React.FC<ProjectFormProps> = ({ onClose, onSubmit }) => {
+export const ProjectForm: React.FC<ProjectFormProps> = ({
+  onSubmit,
+  onClose,
+  tasks,
+  events
+}) => {
   const fields = [
     {
       name: 'projectName',
       label: 'Название проекта',
-      rules: [{ required: true, message: 'Пожалуйста, введите название проекта' }]
+      rules: [{ required: true }],
+      component: <Input />
     },
     {
       name: 'description',
       label: 'Описание',
-      rules: [{ required: true, message: 'Пожалуйста, введите описание' }]
+      rules: [{ required: true }],
+      component: <Input.TextArea />
+    },
+    {
+      name: 'tasks',
+      label: 'Задачи',
+      component: (
+        <Select mode="multiple">
+          {tasks.filter(task => !task.projectId).map(task => (
+            <Select.Option key={task.id} value={task.id}>
+              {task.taskName}
+            </Select.Option>
+          ))}
+        </Select>
+      )
+    },
+    {
+      name: 'events',
+      label: 'События',
+      component: (
+        <Select mode="multiple">
+          {events.filter(event => !event.projectId).map(event => (
+            <Select.Option key={event.id} value={event.id}>
+              {event.eventName}
+            </Select.Option>
+          ))}
+        </Select>
+      )
     }
   ];
 
@@ -35,5 +67,3 @@ const ProjectForm: React.FC<ProjectFormProps> = ({ onClose, onSubmit }) => {
     />
   );
 };
-
-export default ProjectForm;

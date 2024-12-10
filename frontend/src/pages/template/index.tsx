@@ -1,12 +1,20 @@
-// Template.tsx
-import React, { useState } from 'react';
-import { Input, Button, Row, Col } from 'antd';
-import ProjectForm from './forms/ProjectForm';
-import TaskForm from './forms/TaskForm';
-import EventForm from './forms/EventForm';
+import React, { useState, useEffect } from 'react';
+import { Input, Button, Row, Col, Tag, Tooltip, message } from 'antd';
+import { v4 as uuidv4 } from 'uuid';
+import { ProjectForm } from './forms/ProjectForm';
+import { TaskForm } from './forms/TaskForm';
+import { EventForm } from './forms/EventForm';
+import { DeleteOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
+import { Project, Task, Event } from './types';
 
 type FormType = 'project' | 'task' | 'event' | null;
+type ItemType = 'projects' | 'tasks' | 'events';
 
+interface Items {
+  projects: Project[];
+  tasks: Task[];
+  events: Event[];
+}
 const templateStyles = {
   container: {
     padding: '20px',
@@ -34,19 +42,21 @@ const templateStyles = {
     padding: '10px',
     borderBottom: '1px solid #f0f0f0',
     marginBottom: '5px',
-    whiteSpace: 'nowrap' as 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis'
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start'
   },
   itemTitle: {
     fontWeight: 'bold',
     marginRight: '5px',
-    display: 'inline'
+    display: 'block'
   },
   itemDescription: {
     fontWeight: 'normal',
     color: '#666',
-    display: 'inline'
+    display: 'block',
+    fontSize: '0.9em',
+    marginTop: '4px'
   },
   modal: {
     position: 'fixed' as 'fixed',
@@ -59,6 +69,16 @@ const templateStyles = {
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000
+  },
+  deleteButton: {
+    marginLeft: '8px',
+    color: '#ff4d4f',
+    cursor: 'pointer'
+  },
+  tags: {
+    marginTop: '8px',
+    display: 'flex',
+    gap: '4px'
   }
 };
 
@@ -70,33 +90,122 @@ const Template: React.FC = () => {
     event: ''
   });
 
-  const [items, setItems] = useState({
-    projects: JSON.parse(localStorage.getItem('projects') || '[]'),
-    tasks: JSON.parse(localStorage.getItem('tasks') || '[]'),
-    events: JSON.parse(localStorage.getItem('events') || '[]')
+  const [items, setItems] = useState<Items>({
+    projects: [],
+    tasks: [],
+    events: []
   });
+  
 
-  const handleFormSelect = (type: FormType) => {
-    setActiveForm(type);
-  };
+  useEffect(() => {
+    const loadedProjects = JSON.parse(localStorage.getItem('projects') || '[]');
+    const loadedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+    const loadedEvents = JSON.parse(localStorage.getItem('events') || '[]');
 
-  const handleFormSubmit = (type: FormType, newItem: any) => {
+    setItems({
+      projects: loadedProjects,
+      tasks: loadedTasks,
+      events: loadedEvents
+    });
+  }, []);
+
+  const handleFormSubmit = (type: FormType, values: any) => {
     if (!type) return;
 
-    const storageKey = type === 'project' ? 'projects' :
-      type === 'task' ? 'tasks' : 'events';
+    const newId = uuidv4();
 
-    const updatedItems = [...items[storageKey], newItem];
+    switch (type) {
+      case 'project':
+        const newProject: Project = {
+          id: newId,
+          projectName: values.projectName,
+          description: values.description,
+          tasks: values.tasks || [],
+          events: values.events || []
+        };
 
-    localStorage.setItem(storageKey, JSON.stringify(updatedItems));
+        const updatedTasks = items.tasks.map(task => 
+          values.tasks?.includes(task.id) ? { ...task, projectId: newId } : task
+        );
 
-    setItems(prev => ({
-      ...prev,
-      [storageKey]: updatedItems
-    }));
+        const updatedEvents = items.events.map(event => 
+          values.events?.includes(event.id) ? { ...event, projectId: newId } : event
+        );
+
+        setItems(prev => ({
+          ...prev,
+          projects: [...prev.projects, newProject],
+          tasks: updatedTasks,
+          events: updatedEvents
+        }));
+        break;
+
+      case 'task':
+        const newTask: Task = {
+          id: newId,
+          taskName: values.taskName,
+          description: values.description,
+          projectId: values.projectId,
+          status: values.status,
+          priority: values.priority,
+          dueDate: values.dueDate.format('YYYY-MM-DD')
+        };
+
+        setItems(prev => ({
+          ...prev,
+          tasks: [...prev.tasks, newTask]
+        }));
+        break;
+
+      case 'event':
+        const newEvent: Event = {
+          id: newId,
+          eventName: values.eventName,
+          description: values.description,
+          projectId: values.projectId,
+          date: values.date.format('YYYY-MM-DD'),
+          time: values.time.format('HH:mm')
+        };
+
+        setItems(prev => ({
+          ...prev,
+          events: [...prev.events, newEvent]
+        }));
+        break;
+    }
+
+    localStorage.setItem('projects', JSON.stringify(items.projects));
+    localStorage.setItem('tasks', JSON.stringify(items.tasks));
+    localStorage.setItem('events', JSON.stringify(items.events));
 
     setActiveForm(null);
   };
+
+  const handleDelete = (type: ItemType, id: string) => {
+    setItems(prev => {
+      const newItems: Items = {
+        projects: [...prev.projects],
+        tasks: [...prev.tasks],
+        events: [...prev.events]
+      };
+  
+      if (type === 'projects') {
+        newItems.projects = prev.projects.filter(item => item.id !== id);
+      } else if (type === 'tasks') {
+        newItems.tasks = prev.tasks.filter(item => item.id !== id);
+      } else if (type === 'events') {
+        newItems.events = prev.events.filter(item => item.id !== id);
+      }
+  
+      // Теперь используем типизированный ключ
+      (Object.keys(newItems) as ItemType[]).forEach(key => {
+        localStorage.setItem(key, JSON.stringify(newItems[key]));
+      });
+  
+      return newItems;
+    });
+  };
+  
 
   const filterItems = (itemsList: any[], searchTerm: string) => {
     return itemsList.filter(item =>
@@ -109,24 +218,79 @@ const Template: React.FC = () => {
   const renderForm = () => {
     switch (activeForm) {
       case 'project':
-        return <ProjectForm
-          onClose={() => setActiveForm(null)}
-          onSubmit={(values) => handleFormSubmit('project', values)}
-        />;
+        return (
+          <ProjectForm
+            onClose={() => setActiveForm(null)}
+            onSubmit={(values) => handleFormSubmit('project', values)}
+            tasks={items.tasks}
+            events={items.events}
+          />
+        );
       case 'task':
-        return <TaskForm
-          onClose={() => setActiveForm(null)}
-          onSubmit={(values) => handleFormSubmit('task', values)}
-        />;
+        return (
+          <TaskForm
+            onClose={() => setActiveForm(null)}
+            onSubmit={(values) => handleFormSubmit('task', values)}
+            projects={items.projects}
+          />
+        );
       case 'event':
-        return <EventForm
-          onClose={() => setActiveForm(null)}
-          onSubmit={(values) => handleFormSubmit('event', values)}
-        />;
+        return (
+          <EventForm
+            onClose={() => setActiveForm(null)}
+            onSubmit={(values) => handleFormSubmit('event', values)}
+            projects={items.projects}
+          />
+        );
       default:
         return null;
     }
   };
+
+  const renderTaskItem = (task: Task) => (
+    <li key={task.id} style={templateStyles.listItem}>
+      <div>
+        <span style={templateStyles.itemTitle}>{task.taskName}</span>
+        <span style={templateStyles.itemDescription}>{task.description}</span>
+        <div style={templateStyles.tags}>
+          <Tag color={task.priority === 'high' ? 'red' : task.priority === 'medium' ? 'orange' : 'green'}>
+            {task.priority}
+          </Tag>
+          <Tag color={task.status === 'done' ? 'green' : task.status === 'in-progress' ? 'blue' : 'default'}>
+            {task.status}
+          </Tag>
+          <Tag icon={<CalendarOutlined />}>{task.dueDate}</Tag>
+        </div>
+      </div>
+      <Button
+        type="text"
+        danger
+        icon={<DeleteOutlined />}
+        onClick={() => handleDelete('tasks', task.id)}
+        style={templateStyles.deleteButton}
+      />
+    </li>
+  );
+
+  const renderEventItem = (event: Event) => (
+    <li key={event.id} style={templateStyles.listItem}>
+      <div>
+        <span style={templateStyles.itemTitle}>{event.eventName}</span>
+        <span style={templateStyles.itemDescription}>{event.description}</span>
+        <div style={templateStyles.tags}>
+          <Tag icon={<CalendarOutlined />}>{event.date}</Tag>
+          <Tag icon={<ClockCircleOutlined />}>{event.time}</Tag>
+        </div>
+      </div>
+      <Button
+        type="text"
+        danger
+        icon={<DeleteOutlined />}
+        onClick={() => handleDelete('events', event.id)}
+        style={templateStyles.deleteButton}
+      />
+    </li>
+  );
 
   return (
     <div style={templateStyles.container}>
@@ -142,17 +306,26 @@ const Template: React.FC = () => {
             <Button
               type="primary"
               ghost
-              onClick={() => handleFormSelect('project')}
+              onClick={() => setActiveForm('project')}
             >
               + Проект
             </Button>
           </Col>
         </Row>
         <ul style={templateStyles.itemsList}>
-          {filterItems(items.projects, searchTerms.project).map((project, index) => (
-            <li key={index} style={templateStyles.listItem}>
-              <span style={templateStyles.itemTitle}>{project.projectName}</span>
-              <span style={templateStyles.itemDescription}>{project.description}</span>
+          {filterItems(items.projects, searchTerms.project).map((project) => (
+            <li key={project.id} style={templateStyles.listItem}>
+              <div>
+                <span style={templateStyles.itemTitle}>{project.projectName}</span>
+                <span style={templateStyles.itemDescription}>{project.description}</span>
+              </div>
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                onClick={() => handleDelete('projects', project.id)}
+                style={templateStyles.deleteButton}
+              />
             </li>
           ))}
         </ul>
@@ -170,19 +343,14 @@ const Template: React.FC = () => {
             <Button
               type="primary"
               ghost
-              onClick={() => handleFormSelect('task')}
+              onClick={() => setActiveForm('task')}
             >
               + Задача
             </Button>
           </Col>
         </Row>
         <ul style={templateStyles.itemsList}>
-          {filterItems(items.tasks, searchTerms.task).map((task, index) => (
-            <li key={index} style={templateStyles.listItem}>
-              <span style={templateStyles.itemTitle}>{task.taskName}</span>
-              <span style={templateStyles.itemDescription}>{task.description}</span>
-            </li>
-          ))}
+          {filterItems(items.tasks, searchTerms.task).map(renderTaskItem)}
         </ul>
       </div>
 
@@ -198,19 +366,14 @@ const Template: React.FC = () => {
             <Button
               type="primary"
               ghost
-              onClick={() => handleFormSelect('event')}
+              onClick={() => setActiveForm('event')}
             >
               + Событие
             </Button>
           </Col>
         </Row>
         <ul style={templateStyles.itemsList}>
-          {filterItems(items.events, searchTerms.event).map((event, index) => (
-            <li key={index} style={templateStyles.listItem}>
-              <span style={templateStyles.itemTitle}>{event.eventName}</span>
-              <span style={templateStyles.itemDescription}>{event.description}</span>
-            </li>
-          ))}
+          {filterItems(items.events, searchTerms.event).map(renderEventItem)}
         </ul>
       </div>
 

@@ -1,29 +1,18 @@
-// BaseForm.tsx
+// forms/BaseForm.tsx
 import React from 'react';
-import { Form, Input, Button } from 'antd';
-
-interface Field {
-  name: string;
-  label: string;
-  rules: any[];
-}
-
-interface BaseFormProps {
-  onSubmit: (values: any) => void;
-  onClose: () => void;
-  fields: Field[];
-  title: string;
-}
+import { Form, Button } from 'antd';
+import { BaseFormProps } from '../types';
 
 const formStyles = {
-  container: {
+  form: {
     backgroundColor: 'white',
     padding: '20px',
     borderRadius: '8px',
     width: '400px'
   },
   title: {
-    marginBottom: '20px'
+    marginBottom: '20px',
+    textAlign: 'center' as const
   },
   buttons: {
     display: 'flex',
@@ -33,43 +22,42 @@ const formStyles = {
   }
 };
 
-const BaseForm: React.FC<BaseFormProps> = ({ onSubmit, onClose, fields, title }) => {
+export const BaseForm: React.FC<BaseFormProps> = ({
+  title,
+  fields,
+  onSubmit,
+  onClose
+}) => {
   const [form] = Form.useForm();
 
-  const handleSubmit = (values: any) => {
-    onSubmit(values);
-    form.resetFields();
-  };
-
   return (
-    <div style={formStyles.container}>
+    <div style={formStyles.form}>
       <h2 style={formStyles.title}>{title}</h2>
       <Form
         form={form}
         layout="vertical"
-        onFinish={handleSubmit}
+        onFinish={(values) => {
+          onSubmit(values);
+          form.resetFields();
+        }}
       >
-        {fields.map(field => (
+        {fields.map((field) => (
           <Form.Item
             key={field.name}
-            label={field.label}
             name={field.name}
+            label={field.label}
             rules={field.rules}
           >
-            <Input />
+            {field.component}
           </Form.Item>
         ))}
         <div style={formStyles.buttons}>
+          <Button onClick={onClose}>Отмена</Button>
           <Button type="primary" htmlType="submit">
-            Сохранить
-          </Button>
-          <Button onClick={onClose}>
-            Отмена
+            Создать
           </Button>
         </div>
       </Form>
     </div>
   );
 };
-
-export default BaseForm;

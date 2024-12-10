@@ -1,23 +1,57 @@
-// EventForm.tsx
+// forms/EventForm.tsx
 import React from 'react';
-import BaseForm from './BaseForm';
+import { Input, Select, DatePicker, TimePicker } from 'antd';
+import { BaseForm } from './BaseForm';
+import { Project } from '../types';
 
 interface EventFormProps {
-  onClose: () => void;
   onSubmit: (values: any) => void;
+  onClose: () => void;
+  projects: Project[];
 }
 
-const EventForm: React.FC<EventFormProps> = ({ onClose, onSubmit }) => {
+export const EventForm: React.FC<EventFormProps> = ({
+  onSubmit,
+  onClose,
+  projects
+}) => {
   const fields = [
     {
       name: 'eventName',
       label: 'Название события',
-      rules: [{ required: true, message: 'Пожалуйста, введите название события' }]
+      rules: [{ required: true }],
+      component: <Input />
     },
     {
       name: 'description',
       label: 'Описание',
-      rules: [{ required: true, message: 'Пожалуйста, введите описание' }]
+      rules: [{ required: true }],
+      component: <Input.TextArea />
+    },
+    {
+      name: 'projectId',
+      label: 'Проект',
+      component: (
+        <Select allowClear>
+          {projects.map(project => (
+            <Select.Option key={project.id} value={project.id}>
+              {project.projectName}
+            </Select.Option>
+          ))}
+        </Select>
+      )
+    },
+    {
+      name: 'date',
+      label: 'Дата',
+      rules: [{ required: true }],
+      component: <DatePicker style={{ width: '100%' }} />
+    },
+    {
+      name: 'time',
+      label: 'Время',
+      rules: [{ required: true }],
+      component: <TimePicker style={{ width: '100%' }} />
     }
   ];
 
@@ -30,5 +64,3 @@ const EventForm: React.FC<EventFormProps> = ({ onClose, onSubmit }) => {
     />
   );
 };
-
-export default EventForm;
