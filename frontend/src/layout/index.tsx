@@ -42,11 +42,9 @@ const Layouts: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [currentUser, setCurrentUser] = useState<Employee>();
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setIsLoading] = useState(true);
   const [dictionaryLists, setDictionaryLists] = useState<any[]>([])
   const navigate = useNavigate();
-
-  console.log(isLoading)
 
   const {
     token: { colorBgContainer },
