@@ -95,6 +95,9 @@ interface ApiClientConfig {
     async getDictianaryList(): Promise<any>{
       return this.get('dictionary/get_dictionaries_list/');
     }
+    async getAllDictianary(): Promise<any>{
+      return this.get('dictionary/all/');
+    }
     async getDictianaryInfoPage(name: any): Promise<any>{
       return this.get(`dictionary/${name}/`);
     }
