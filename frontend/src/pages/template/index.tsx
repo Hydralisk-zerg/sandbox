@@ -1,389 +1,276 @@
 import React, { useState, useEffect } from 'react';
-import { Input, Button, Row, Col, Tag } from 'antd';
-import { v4 as uuidv4 } from 'uuid';
-import { ProjectForm } from './forms/ProjectForm';
-import { TaskForm } from './forms/TaskForm';
-import { EventForm } from './forms/EventForm';
-import { DeleteOutlined, CalendarOutlined, ClockCircleOutlined } from '@ant-design/icons';
-import { Project, Task, Event } from './types';
+import {
+  Layout,
+  Typography,
+  Button,
+  Empty,
+  Card,
+  Modal,
+  Form,
+  Input,
+  Space,
+  Row,
+  Col,
+  notification,
+  Input as AntInput
+} from 'antd';
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+  ClearOutlined
+} from '@ant-design/icons';
+import { ProjectTemplate } from './types';
+import { templateStorage } from '../../services/templateStorage';
 
-type FormType = 'project' | 'task' | 'event' | null;
-type ItemType = 'projects' | 'tasks' | 'events';
-
-interface Items {
-  projects: Project[];
-  tasks: Task[];
-  events: Event[];
-}
-const templateStyles = {
-  container: {
-    padding: '20px',
-    display: 'flex',
-    gap: '20px',
-    width: '100%',
-    boxSizing: 'border-box' as 'border-box'
-  },
-  card: {
-    flex: '1',
-    minWidth: '320px',
-    border: '1px solid #d9d9d9',
-    borderRadius: '8px',
-    padding: '15px',
-    position: 'relative' as 'relative',
-    backgroundColor: '#fff',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-  },
-  itemsList: {
-    listStyle: 'none',
-    padding: 0,
-    margin: 0
-  },
-  listItem: {
-    padding: '10px',
-    borderBottom: '1px solid #f0f0f0',
-    marginBottom: '5px',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start'
-  },
-  itemTitle: {
-    fontWeight: 'bold',
-    marginRight: '5px',
-    display: 'block'
-  },
-  itemDescription: {
-    fontWeight: 'normal',
-    color: '#666',
-    display: 'block',
-    fontSize: '0.9em',
-    marginTop: '4px'
-  },
-  modal: {
-    position: 'fixed' as 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000
-  },
-  deleteButton: {
-    marginLeft: '8px',
-    color: '#ff4d4f',
-    cursor: 'pointer'
-  },
-  tags: {
-    marginTop: '8px',
-    display: 'flex',
-    gap: '4px'
-  }
-};
+const { Content } = Layout;
+const { Title } = Typography;
+const { TextArea } = Input;
+const { Search } = AntInput;
 
 const Template: React.FC = () => {
-  const [activeForm, setActiveForm] = useState<FormType>(null);
-  const [searchTerms, setSearchTerms] = useState({
-    project: '',
-    task: '',
-    event: ''
-  });
-
-  const [items, setItems] = useState<Items>({
-    projects: [],
-    tasks: [],
-    events: []
-  });
-  
+  const [templates, setTemplates] = useState<ProjectTemplate[]>([]);
+  const [filteredTemplates, setFilteredTemplates] = useState<ProjectTemplate[]>([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [form] = Form.useForm();
 
   useEffect(() => {
-    const loadedProjects = JSON.parse(localStorage.getItem('projects') || '[]');
-    const loadedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
-    const loadedEvents = JSON.parse(localStorage.getItem('events') || '[]');
-
-    setItems({
-      projects: loadedProjects,
-      tasks: loadedTasks,
-      events: loadedEvents
-    });
+    loadTemplates();
   }, []);
 
-  const handleFormSubmit = (type: FormType, values: any) => {
-    if (!type) return;
+  useEffect(() => {
+    filterTemplates();
+  }, [searchQuery, templates]);
 
-    const newId = uuidv4();
-
-    switch (type) {
-      case 'project':
-        const newProject: Project = {
-          id: newId,
-          projectName: values.projectName,
-          description: values.description,
-          tasks: values.tasks || [],
-          events: values.events || []
-        };
-
-        const updatedTasks = items.tasks.map(task => 
-          values.tasks?.includes(task.id) ? { ...task, projectId: newId } : task
-        );
-
-        const updatedEvents = items.events.map(event => 
-          values.events?.includes(event.id) ? { ...event, projectId: newId } : event
-        );
-
-        setItems(prev => ({
-          ...prev,
-          projects: [...prev.projects, newProject],
-          tasks: updatedTasks,
-          events: updatedEvents
-        }));
-        break;
-
-      case 'task':
-        const newTask: Task = {
-          id: newId,
-          taskName: values.taskName,
-          description: values.description,
-          projectId: values.projectId,
-          status: values.status,
-          priority: values.priority,
-          dueDate: values.dueDate.format('YYYY-MM-DD')
-        };
-
-        setItems(prev => ({
-          ...prev,
-          tasks: [...prev.tasks, newTask]
-        }));
-        break;
-
-      case 'event':
-        const newEvent: Event = {
-          id: newId,
-          eventName: values.eventName,
-          description: values.description,
-          projectId: values.projectId,
-          date: values.date.format('YYYY-MM-DD'),
-          time: values.time.format('HH:mm')
-        };
-
-        setItems(prev => ({
-          ...prev,
-          events: [...prev.events, newEvent]
-        }));
-        break;
+  const loadTemplates = () => {
+    try {
+      console.log('Loading templates...');
+      const loadedTemplates = templateStorage.getTemplates();
+      console.log('Loaded templates:', loadedTemplates);
+      setTemplates(loadedTemplates);
+    } catch (error) {
+      console.error('Error loading templates:', error);
+      notification.error({
+        message: 'Ошибка загрузки',
+        description: 'Не удалось загрузить шаблоны'
+      });
     }
-
-    localStorage.setItem('projects', JSON.stringify(items.projects));
-    localStorage.setItem('tasks', JSON.stringify(items.tasks));
-    localStorage.setItem('events', JSON.stringify(items.events));
-
-    setActiveForm(null);
   };
 
-  const handleDelete = (type: ItemType, id: string) => {
-    setItems(prev => {
-      const newItems: Items = {
-        projects: [...prev.projects],
-        tasks: [...prev.tasks],
-        events: [...prev.events]
+  const filterTemplates = () => {
+    console.log('Filtering templates with query:', searchQuery);
+    const filtered = templates.filter(template => {
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        template.name.toLowerCase().includes(searchLower) ||
+        (template.description?.toLowerCase() || '').includes(searchLower) || // Добавлена проверка
+        new Date(template.updatedAt).toLocaleDateString().includes(searchLower) ||
+        template.elements.length.toString().includes(searchLower)
+      );
+    });
+    console.log('Filtered templates:', filtered);
+    setFilteredTemplates(filtered);
+  };
+
+  const handleCreateTemplate = (values: any) => {
+    try {
+      console.log('Creating new template with values:', values);
+      const newTemplate: ProjectTemplate = {
+        id: crypto.randomUUID(),
+        name: values.name,
+        description: values.description,
+        elements: [],
+        connections: [],
+        createdBy: 1,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       };
-  
-      if (type === 'projects') {
-        newItems.projects = prev.projects.filter(item => item.id !== id);
-      } else if (type === 'tasks') {
-        newItems.tasks = prev.tasks.filter(item => item.id !== id);
-      } else if (type === 'events') {
-        newItems.events = prev.events.filter(item => item.id !== id);
-      }
-  
-      // Теперь используем типизированный ключ
-      (Object.keys(newItems) as ItemType[]).forEach(key => {
-        localStorage.setItem(key, JSON.stringify(newItems[key]));
+
+      templateStorage.saveTemplate(newTemplate);
+      console.log('Template created successfully:', newTemplate);
+
+      loadTemplates();
+      setIsModalVisible(false);
+      form.resetFields();
+
+      notification.success({
+        message: 'Успешно',
+        description: 'Шаблон успешно создан'
       });
-  
-      return newItems;
+    } catch (error) {
+      console.error('Error creating template:', error);
+      notification.error({
+        message: 'Ошибка',
+        description: 'Не удалось создать шаблон'
+      });
+    }
+  };
+
+  const handleDeleteTemplate = (templateId: string) => {
+    Modal.confirm({
+      title: 'Подтверждение удаления',
+      content: 'Вы уверены, что хотите удалить этот шаблон?',
+      okText: 'Да',
+      cancelText: 'Нет',
+      onOk: () => {
+        try {
+          console.log('Deleting template:', templateId);
+          // Добавить логику удаления
+          templateStorage.deleteTemplate(templateId);
+          loadTemplates();
+
+          notification.success({
+            message: 'Успешно',
+            description: 'Шаблон успешно удален'
+          });
+        } catch (error) {
+          console.error('Error deleting template:', error);
+          notification.error({
+            message: 'Ошибка',
+            description: 'Не удалось удалить шаблон'
+          });
+        }
+      }
     });
   };
-  
-
-  const filterItems = (itemsList: any[], searchTerm: string) => {
-    return itemsList.filter(item =>
-      Object.values(item).some(value =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    );
-  };
-
-  const renderForm = () => {
-    switch (activeForm) {
-      case 'project':
-        return (
-          <ProjectForm
-            onClose={() => setActiveForm(null)}
-            onSubmit={(values) => handleFormSubmit('project', values)}
-            tasks={items.tasks}
-            events={items.events}
-          />
-        );
-      case 'task':
-        return (
-          <TaskForm
-            onClose={() => setActiveForm(null)}
-            onSubmit={(values) => handleFormSubmit('task', values)}
-            projects={items.projects}
-          />
-        );
-      case 'event':
-        return (
-          <EventForm
-            onClose={() => setActiveForm(null)}
-            onSubmit={(values) => handleFormSubmit('event', values)}
-            projects={items.projects}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  const renderTaskItem = (task: Task) => (
-    <li key={task.id} style={templateStyles.listItem}>
-      <div>
-        <span style={templateStyles.itemTitle}>{task.taskName}</span>
-        <span style={templateStyles.itemDescription}>{task.description}</span>
-        <div style={templateStyles.tags}>
-          <Tag color={task.priority === 'high' ? 'red' : task.priority === 'medium' ? 'orange' : 'green'}>
-            {task.priority}
-          </Tag>
-          <Tag color={task.status === 'done' ? 'green' : task.status === 'in-progress' ? 'blue' : 'default'}>
-            {task.status}
-          </Tag>
-          <Tag icon={<CalendarOutlined />}>{task.dueDate}</Tag>
-        </div>
-      </div>
-      <Button
-        type="text"
-        danger
-        icon={<DeleteOutlined />}
-        onClick={() => handleDelete('tasks', task.id)}
-        style={templateStyles.deleteButton}
-      />
-    </li>
-  );
-
-  const renderEventItem = (event: Event) => (
-    <li key={event.id} style={templateStyles.listItem}>
-      <div>
-        <span style={templateStyles.itemTitle}>{event.eventName}</span>
-        <span style={templateStyles.itemDescription}>{event.description}</span>
-        <div style={templateStyles.tags}>
-          <Tag icon={<CalendarOutlined />}>{event.date}</Tag>
-          <Tag icon={<ClockCircleOutlined />}>{event.time}</Tag>
-        </div>
-      </div>
-      <Button
-        type="text"
-        danger
-        icon={<DeleteOutlined />}
-        onClick={() => handleDelete('events', event.id)}
-        style={templateStyles.deleteButton}
-      />
-    </li>
-  );
 
   return (
-    <div style={templateStyles.container}>
-      <div style={templateStyles.card}>
-        <Row>
-          <Col span={16}>
-            <Input
-              placeholder="Поиск проектов"
-              onChange={(e) => setSearchTerms({ ...searchTerms, project: e.target.value })}
-            />
-          </Col>
-          <Col offset={1} span={7}>
-            <Button
-              type="primary"
-              ghost
-              onClick={() => setActiveForm('project')}
-            >
-              + Проект
-            </Button>
-          </Col>
-        </Row>
-        <ul style={templateStyles.itemsList}>
-          {filterItems(items.projects, searchTerms.project).map((project) => (
-            <li key={project.id} style={templateStyles.listItem}>
-              <div>
-                <span style={templateStyles.itemTitle}>{project.projectName}</span>
-                <span style={templateStyles.itemDescription}>{project.description}</span>
-              </div>
-              <Button
-                type="text"
-                danger
-                icon={<DeleteOutlined />}
-                onClick={() => handleDelete('projects', project.id)}
-                style={templateStyles.deleteButton}
-              />
-            </li>
-          ))}
-        </ul>
-      </div>
+    <Layout>
+      <Card>
+        <Content style={{ padding: '24px' }}>
+          <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
+            <Col>
+              <Title level={2}>Шаблоны проектов</Title>
+            </Col>
+            <Col>
+              <Space>
+                <Input
+                  placeholder="Поиск шаблонов"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ width: 300 }}
+                />
+                <Button
+                  type="primary"
+                  ghost
+                  danger={searchQuery.length > 0}
+                  icon={<ClearOutlined />}
+                  onClick={() => setSearchQuery('')}
+                />
+                <Button
+                  type="primary"
+                  ghost
+                  icon={<PlusOutlined />}
+                  onClick={() => setIsModalVisible(true)}
+                >
+                  Создать шаблон
+                </Button>
+              </Space>
 
-      <div style={templateStyles.card}>
-        <Row>
-          <Col span={16}>
-            <Input
-              placeholder="Поиск задач"
-              onChange={(e) => setSearchTerms({ ...searchTerms, task: e.target.value })}
-            />
-          </Col>
-          <Col offset={1} span={7}>
-            <Button
-              type="primary"
-              ghost
-              onClick={() => setActiveForm('task')}
-            >
-              + Задача
-            </Button>
-          </Col>
-        </Row>
-        <ul style={templateStyles.itemsList}>
-          {filterItems(items.tasks, searchTerms.task).map(renderTaskItem)}
-        </ul>
-      </div>
+            </Col>
+          </Row>
 
-      <div style={templateStyles.card}>
-        <Row>
-          <Col span={16}>
-            <Input
-              placeholder="Поиск событий"
-              onChange={(e) => setSearchTerms({ ...searchTerms, event: e.target.value })}
-            />
-          </Col>
-          <Col offset={1} span={7}>
-            <Button
-              type="primary"
-              ghost
-              onClick={() => setActiveForm('event')}
+          {filteredTemplates.length === 0 ? (
+            <Empty
+              description={searchQuery ? "Ничего не найдено" : "Шаблоны отсутствуют"}
+              style={{ margin: '40px 0' }}
             >
-              + Событие
-            </Button>
-          </Col>
-        </Row>
-        <ul style={templateStyles.itemsList}>
-          {filterItems(items.events, searchTerms.event).map(renderEventItem)}
-        </ul>
-      </div>
+              {!searchQuery && (
+                <Button
+                  type="primary"
+                  onClick={() => setIsModalVisible(true)}
+                >
+                  Создать первый шаблон
+                </Button>
+              )}
+            </Empty>
+          ) : (
+            <Row gutter={[16, 16]}>
+              {filteredTemplates.map(template => (
+                <Col xs={24} sm={12} md={8} lg={6} key={template.id}>
+                  <Card
+                    actions={[
+                      <EditOutlined key="edit" />,
+                      <DeleteOutlined
+                        key="delete"
+                        onClick={() => handleDeleteTemplate(template.id)}
+                      />
+                    ]}
+                  >
+                    <Card.Meta
+                      title={template.name}
+                      description={template.description}
+                    />
+                    <div style={{ marginTop: 16 }}>
+                      <Space direction="vertical" size="small">
+                        <span>Элементов: {template.elements.length}</span>
+                        <span>
+                          Обновлено: {new Date(template.updatedAt).toLocaleDateString()}
+                        </span>
+                      </Space>
+                    </div>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          )}
 
-      {activeForm && (
-        <div style={templateStyles.modal}>
-          {renderForm()}
-        </div>
-      )}
-    </div>
+          <Modal
+            title="Создать шаблон"
+            visible={isModalVisible}
+            onCancel={() => {
+              setIsModalVisible(false);
+              form.resetFields();
+            }}
+            footer={null}
+          >
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleCreateTemplate}
+            >
+              <Form.Item
+                name="name"
+                label="Название"
+                rules={[{ required: true, message: 'Введите название шаблона' }]}
+              >
+                <Input />
+              </Form.Item>
+
+              <Form.Item
+                name="description"
+                label="Описание"
+              >
+                <TextArea rows={4} />
+              </Form.Item>
+
+              <Form.Item>
+                <Space>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                  >
+                    Создать
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setIsModalVisible(false);
+                      form.resetFields();
+                    }}
+                  >
+                    Отмена
+                  </Button>
+                </Space>
+              </Form.Item>
+            </Form>
+          </Modal>
+        </Content>
+      </Card>
+    </Layout>
   );
 };
+
 
 export default Template;
