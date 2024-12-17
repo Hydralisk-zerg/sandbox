@@ -1,43 +1,29 @@
-// template/components/TemplateConstructor.tsx
+// src/pages/template/components/TemplateConstructor.tsx
+
 import React, { useState } from 'react';
 import { ElementType, ProjectTemplate } from '../types';
 
 interface TemplateConstructorProps {
   template?: ProjectTemplate;
-  onSave: (template: ProjectTemplate) => void;
 }
 
-export const TemplateConstructor: React.FC<TemplateConstructorProps> = ({
-  template,
-  onSave
-}) => {
-    const [currentTemplate, setCurrentTemplate] = useState<ProjectTemplate>(
-        template || {
-          id: crypto.randomUUID(),
-          name: '',
-          description: '', // Добавляем обязательное поле description
-          elements: [],
-          connections: [],
-          createdBy: 1,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      );
-      
-
-  return (
-    <div className="template-constructor">
-      {/* Здесь будет визуальный конструктор */}
-    </div>
+const TemplateConstructor: React.FC<TemplateConstructorProps> = ({ template }) => {
+  const [currentTemplate, setCurrentTemplate] = useState<ProjectTemplate>(() => 
+    template || {
+      id: crypto.randomUUID(),
+      name: '',
+      elements: [],
+      connections: [],
+      createdBy: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
   );
-};
 
-// template/components/ElementPanel.tsx
-interface ElementPanelProps {
-  onAddElement: (type: ElementType) => void;
-}
+  const onAddElement = (type: ElementType) => {
+    // Реализация добавления элемента
+  };
 
-export const ElementPanel: React.FC<ElementPanelProps> = ({ onAddElement }) => {
   return (
     <div className="element-panel">
       <button onClick={() => onAddElement(ElementType.EVENT)}>
@@ -49,3 +35,5 @@ export const ElementPanel: React.FC<ElementPanelProps> = ({ onAddElement }) => {
     </div>
   );
 };
+
+export default TemplateConstructor;

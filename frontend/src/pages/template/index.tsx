@@ -1,276 +1,213 @@
 import React, { useState, useEffect } from 'react';
-import {
-  Layout,
-  Typography,
-  Button,
-  Empty,
-  Card,
-  Modal,
-  Form,
-  Input,
-  Space,
-  Row,
-  Col,
-  notification,
-  Input as AntInput
-} from 'antd';
-import {
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  SearchOutlined,
-  ClearOutlined
-} from '@ant-design/icons';
-import { ProjectTemplate } from './types';
-import { templateStorage } from '../../services/templateStorage';
+import { Layout, Row, Col, Card } from 'antd';
+import { v4 as uuidv4 } from 'uuid';
+import ProjectsColumn from './components/ProjectsColumn';
+import TasksColumn from './components/TasksColumn';
+import EventsColumn from './components/EventsColumn';
+import TemplateColumn from './components/TemplateColumn';
+import { Project, Task, Event, Template } from './types';
+import { projectStorage, taskStorage, eventStorage, templateStorage } from '../../utils/storage';
 
 const { Content } = Layout;
-const { Title } = Typography;
-const { TextArea } = Input;
-const { Search } = AntInput;
 
-const Template: React.FC = () => {
-  const [templates, setTemplates] = useState<ProjectTemplate[]>([]);
-  const [filteredTemplates, setFilteredTemplates] = useState<ProjectTemplate[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [form] = Form.useForm();
+const Dashboard: React.FC = () => {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
 
+  // Загрузка данных при монтировании компонента
   useEffect(() => {
-    loadTemplates();
+    setProjects(projectStorage.getProjects());
+    setTasks(taskStorage.getTasks());
+    setEvents(eventStorage.getEvents());
+    setTemplates(templateStorage.getTemplates());
   }, []);
 
-  useEffect(() => {
-    filterTemplates();
-  }, [searchQuery, templates]);
+  // Обработчики для проектов
+  const handleProjectAdd = (projectData: Omit<Project, 'id'>) => {
+    const newProject = { 
+      ...projectData, 
+      id: uuidv4(),
+      status: projectData.status || 'pending'
+    };
+    const updatedProjects = [...projects, newProject];
+    setProjects(updatedProjects);
+    projectStorage.saveProjects(updatedProjects);
+  };
 
-  const loadTemplates = () => {
-    try {
-      console.log('Loading templates...');
-      const loadedTemplates = templateStorage.getTemplates();
-      console.log('Loaded templates:', loadedTemplates);
-      setTemplates(loadedTemplates);
-    } catch (error) {
-      console.error('Error loading templates:', error);
-      notification.error({
-        message: 'Ошибка загрузки',
-        description: 'Не удалось загрузить шаблоны'
-      });
+  const handleProjectDelete = (projectId: string) => {
+    const updatedProjects = projects.filter(p => p.id !== projectId);
+    setProjects(updatedProjects);
+    projectStorage.saveProjects(updatedProjects);
+  };
+
+  const handleProjectEdit = (updatedProject: Project) => {
+    const updatedProjects = projects.map(p => 
+      p.id === updatedProject.id ? updatedProject : p
+    );
+    setProjects(updatedProjects);
+    projectStorage.saveProjects(updatedProjects);
+  };
+
+  // Обработчики для задач
+  const handleTaskAdd = (taskData: Omit<Task, 'id'>) => {
+    const newTask = { 
+      ...taskData, 
+      id: uuidv4(),
+      status: taskData.status || 'todo',
+      priority: taskData.priority || 'medium'
+    };
+    const updatedTasks = [...tasks, newTask];
+    setTasks(updatedTasks);
+    taskStorage.saveTasks(updatedTasks);
+  };
+
+  const handleTaskDelete = (taskId: string) => {
+    const updatedTasks = tasks.filter(t => t.id !== taskId);
+    setTasks(updatedTasks);
+    taskStorage.saveTasks(updatedTasks);
+  };
+
+  const handleTaskEdit = (updatedTask: Task) => {
+    const updatedTasks = tasks.map(t => 
+      t.id === updatedTask.id ? updatedTask : t
+    );
+    setTasks(updatedTasks);
+    taskStorage.saveTasks(updatedTasks);
+  };
+
+  // Обработчики для событий
+  const handleEventAdd = (eventData: Omit<Event, 'id'>) => {
+    const newEvent = { 
+      ...eventData, 
+      id: uuidv4(),
+      status: eventData.status || 'pending',
+      priority: eventData.priority || 'medium'
+    };
+    const updatedEvents = [...events, newEvent];
+    setEvents(updatedEvents);
+    eventStorage.saveEvents(updatedEvents);
+  };
+
+  const handleEventDelete = (eventId: string) => {
+    const updatedEvents = events.filter(e => e.id !== eventId);
+    setEvents(updatedEvents);
+    eventStorage.saveEvents(updatedEvents);
+  };
+
+  const handleEventEdit = (updatedEvent: Event) => {
+    const updatedEvents = events.map(e => 
+      e.id === updatedEvent.id ? updatedEvent : e
+    );
+    setEvents(updatedEvents);
+    eventStorage.saveEvents(updatedEvents);
+  };
+
+  // Обработчики для шаблонов
+  const handleTemplateAdd = (templateData: Omit<Template, 'id'>) => {
+    const newTemplate = { 
+      ...templateData, 
+      id: uuidv4(),
+      type: templateData.type || 'task', // добавляем значение по умолчанию
+      createdAt: new Date().toISOString()
+    };
+    const updatedTemplates = [...templates, newTemplate];
+    setTemplates(updatedTemplates);
+    templateStorage.saveTemplates(updatedTemplates);
+  };
+
+  const handleTemplateDelete = (templateId: string) => {
+    const updatedTemplates = templates.filter(t => t.id !== templateId);
+    setTemplates(updatedTemplates);
+    templateStorage.saveTemplates(updatedTemplates);
+  };
+
+  const handleTemplateEdit = (updatedTemplate: Template) => {
+    const updatedTemplates = templates.map(t => 
+      t.id === updatedTemplate.id ? updatedTemplate : t
+    );
+    setTemplates(updatedTemplates);
+    templateStorage.saveTemplates(updatedTemplates);
+  };
+
+  const handleTemplateUse = (template: Template) => {
+    // В зависимости от типа шаблона создаем соответствующий элемент
+    switch (template.type) {
+      case 'project':
+        handleProjectAdd({
+          ...template.content,
+          name: `${template.name} (копия)`,
+          startDate: new Date().toISOString(),
+          endDate: new Date().toISOString()
+        });
+        break;
+      case 'task':
+        handleTaskAdd({
+          ...template.content,
+          title: `${template.name} (копия)`,
+          dueDate: new Date().toISOString()
+        });
+        break;
+      case 'event':
+        handleEventAdd({
+          ...template.content,
+          title: `${template.name} (копия)`,
+          date: new Date().toISOString(),
+          time: new Date().toISOString()
+        });
+        break;
+      default:
+        console.warn('Неизвестный тип шаблона:', template.type);
     }
-  };
-
-  const filterTemplates = () => {
-    console.log('Filtering templates with query:', searchQuery);
-    const filtered = templates.filter(template => {
-      const searchLower = searchQuery.toLowerCase();
-      return (
-        template.name.toLowerCase().includes(searchLower) ||
-        (template.description?.toLowerCase() || '').includes(searchLower) || // Добавлена проверка
-        new Date(template.updatedAt).toLocaleDateString().includes(searchLower) ||
-        template.elements.length.toString().includes(searchLower)
-      );
-    });
-    console.log('Filtered templates:', filtered);
-    setFilteredTemplates(filtered);
-  };
-
-  const handleCreateTemplate = (values: any) => {
-    try {
-      console.log('Creating new template with values:', values);
-      const newTemplate: ProjectTemplate = {
-        id: crypto.randomUUID(),
-        name: values.name,
-        description: values.description,
-        elements: [],
-        connections: [],
-        createdBy: 1,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-
-      templateStorage.saveTemplate(newTemplate);
-      console.log('Template created successfully:', newTemplate);
-
-      loadTemplates();
-      setIsModalVisible(false);
-      form.resetFields();
-
-      notification.success({
-        message: 'Успешно',
-        description: 'Шаблон успешно создан'
-      });
-    } catch (error) {
-      console.error('Error creating template:', error);
-      notification.error({
-        message: 'Ошибка',
-        description: 'Не удалось создать шаблон'
-      });
-    }
-  };
-
-  const handleDeleteTemplate = (templateId: string) => {
-    Modal.confirm({
-      title: 'Подтверждение удаления',
-      content: 'Вы уверены, что хотите удалить этот шаблон?',
-      okText: 'Да',
-      cancelText: 'Нет',
-      onOk: () => {
-        try {
-          console.log('Deleting template:', templateId);
-          // Добавить логику удаления
-          templateStorage.deleteTemplate(templateId);
-          loadTemplates();
-
-          notification.success({
-            message: 'Успешно',
-            description: 'Шаблон успешно удален'
-          });
-        } catch (error) {
-          console.error('Error deleting template:', error);
-          notification.error({
-            message: 'Ошибка',
-            description: 'Не удалось удалить шаблон'
-          });
-        }
-      }
-    });
   };
 
   return (
     <Layout>
       <Card>
         <Content style={{ padding: '24px' }}>
-          <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
-            <Col>
-              <Title level={2}>Шаблоны проектов</Title>
+          <Row gutter={[16, 16]}>
+            <Col xs={24} sm={12} md={6}>
+              <ProjectsColumn 
+                projects={projects}
+                onProjectAdd={handleProjectAdd}
+                onProjectDelete={handleProjectDelete}
+                onProjectEdit={handleProjectEdit}
+              />
             </Col>
-            <Col>
-              <Space>
-                <Input
-                  placeholder="Поиск шаблонов"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ width: 300 }}
-                />
-                <Button
-                  type="primary"
-                  ghost
-                  danger={searchQuery.length > 0}
-                  icon={<ClearOutlined />}
-                  onClick={() => setSearchQuery('')}
-                />
-                <Button
-                  type="primary"
-                  ghost
-                  icon={<PlusOutlined />}
-                  onClick={() => setIsModalVisible(true)}
-                >
-                  Создать шаблон
-                </Button>
-              </Space>
 
+            <Col xs={24} sm={12} md={6}>
+              <TasksColumn 
+                tasks={tasks}
+                onTaskAdd={handleTaskAdd}
+                onTaskDelete={handleTaskDelete}
+                onTaskEdit={handleTaskEdit}
+              />
+            </Col>
+
+            <Col xs={24} sm={12} md={6}>
+              <EventsColumn 
+                events={events}
+                onEventAdd={handleEventAdd}
+                onEventDelete={handleEventDelete}
+                onEventEdit={handleEventEdit}
+              />
+            </Col>
+
+            <Col xs={24} sm={12} md={6}>
+              <TemplateColumn 
+                templates={templates}
+                onTemplateAdd={handleTemplateAdd}
+                onTemplateDelete={handleTemplateDelete}
+                onTemplateEdit={handleTemplateEdit}
+                onTemplateUse={handleTemplateUse}
+              />
             </Col>
           </Row>
-
-          {filteredTemplates.length === 0 ? (
-            <Empty
-              description={searchQuery ? "Ничего не найдено" : "Шаблоны отсутствуют"}
-              style={{ margin: '40px 0' }}
-            >
-              {!searchQuery && (
-                <Button
-                  type="primary"
-                  onClick={() => setIsModalVisible(true)}
-                >
-                  Создать первый шаблон
-                </Button>
-              )}
-            </Empty>
-          ) : (
-            <Row gutter={[16, 16]}>
-              {filteredTemplates.map(template => (
-                <Col xs={24} sm={12} md={8} lg={6} key={template.id}>
-                  <Card
-                    actions={[
-                      <EditOutlined key="edit" />,
-                      <DeleteOutlined
-                        key="delete"
-                        onClick={() => handleDeleteTemplate(template.id)}
-                      />
-                    ]}
-                  >
-                    <Card.Meta
-                      title={template.name}
-                      description={template.description}
-                    />
-                    <div style={{ marginTop: 16 }}>
-                      <Space direction="vertical" size="small">
-                        <span>Элементов: {template.elements.length}</span>
-                        <span>
-                          Обновлено: {new Date(template.updatedAt).toLocaleDateString()}
-                        </span>
-                      </Space>
-                    </div>
-                  </Card>
-                </Col>
-              ))}
-            </Row>
-          )}
-
-          <Modal
-            title="Создать шаблон"
-            visible={isModalVisible}
-            onCancel={() => {
-              setIsModalVisible(false);
-              form.resetFields();
-            }}
-            footer={null}
-          >
-            <Form
-              form={form}
-              layout="vertical"
-              onFinish={handleCreateTemplate}
-            >
-              <Form.Item
-                name="name"
-                label="Название"
-                rules={[{ required: true, message: 'Введите название шаблона' }]}
-              >
-                <Input />
-              </Form.Item>
-
-              <Form.Item
-                name="description"
-                label="Описание"
-              >
-                <TextArea rows={4} />
-              </Form.Item>
-
-              <Form.Item>
-                <Space>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                  >
-                    Создать
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setIsModalVisible(false);
-                      form.resetFields();
-                    }}
-                  >
-                    Отмена
-                  </Button>
-                </Space>
-              </Form.Item>
-            </Form>
-          </Modal>
         </Content>
       </Card>
     </Layout>
   );
 };
 
-
-export default Template;
+export default Dashboard;

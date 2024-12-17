@@ -9,7 +9,7 @@ import DictionaryPage from './pages/dictionary';
 import TaskPage from './pages/task';
 import Project from './pages/project';
 import Event from './pages/event';
-import Template from './pages/template';
+import Dashboard from './pages/template';
 
 // Компонент для защищенных маршрутов
 const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
@@ -49,7 +49,7 @@ const App: React.FC = () => {
             <Route path="" element={<Navigate to="/home" replace />} />
             <Route path="task" element={<TaskPage />} />
             <Route path="event" element={<Event />} />
-            <Route path="template" element={<Template />} />
+            <Route path="template" element={<Dashboard />} />
             <Route path="project" element={<Project />} />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
