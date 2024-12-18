@@ -5,15 +5,20 @@ import ProjectsColumn from './components/ProjectsColumn';
 import TasksColumn from './components/TasksColumn';
 import EventsColumn from './components/EventsColumn';
 import TemplateColumn from './components/TemplateColumn';
-import { Project, Task, Event, Template } from './types';
-import { projectStorage, taskStorage, eventStorage, templateStorage } from '../../utils/storage';
+import { projectStorage, taskStorage, eventStorage, templateStorage } from '../../services/templateStorage';
+import { Project, Task, Template, Event as CustomEvent } from '../../interfaces/interfase';
 
 const { Content } = Layout;
+
+interface EventData extends Omit<CustomEvent, 'id'> {
+  status: 'pending' | 'completed';
+  priority: 'low' | 'medium' | 'high';
+}
 
 const Dashboard: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<CustomEvent[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
 
   // Загрузка данных при монтировании компонента
@@ -26,8 +31,8 @@ const Dashboard: React.FC = () => {
 
   // Обработчики для проектов
   const handleProjectAdd = (projectData: Omit<Project, 'id'>) => {
-    const newProject = { 
-      ...projectData, 
+    const newProject = {
+      ...projectData,
       id: uuidv4(),
       status: projectData.status || 'pending'
     };
@@ -43,7 +48,7 @@ const Dashboard: React.FC = () => {
   };
 
   const handleProjectEdit = (updatedProject: Project) => {
-    const updatedProjects = projects.map(p => 
+    const updatedProjects = projects.map(p =>
       p.id === updatedProject.id ? updatedProject : p
     );
     setProjects(updatedProjects);
@@ -52,8 +57,8 @@ const Dashboard: React.FC = () => {
 
   // Обработчики для задач
   const handleTaskAdd = (taskData: Omit<Task, 'id'>) => {
-    const newTask = { 
-      ...taskData, 
+    const newTask = {
+      ...taskData,
       id: uuidv4(),
       status: taskData.status || 'todo',
       priority: taskData.priority || 'medium'
@@ -70,7 +75,7 @@ const Dashboard: React.FC = () => {
   };
 
   const handleTaskEdit = (updatedTask: Task) => {
-    const updatedTasks = tasks.map(t => 
+    const updatedTasks = tasks.map(t =>
       t.id === updatedTask.id ? updatedTask : t
     );
     setTasks(updatedTasks);
@@ -78,9 +83,9 @@ const Dashboard: React.FC = () => {
   };
 
   // Обработчики для событий
-  const handleEventAdd = (eventData: Omit<Event, 'id'>) => {
-    const newEvent = { 
-      ...eventData, 
+  const handleEventAdd = (eventData: EventData) => {
+    const newEvent: CustomEvent = {
+      ...eventData,
       id: uuidv4(),
       status: eventData.status || 'pending',
       priority: eventData.priority || 'medium'
@@ -96,7 +101,7 @@ const Dashboard: React.FC = () => {
     eventStorage.saveEvents(updatedEvents);
   };
 
-  const handleEventEdit = (updatedEvent: Event) => {
+  const handleEventEdit = (updatedEvent: CustomEvent) => {
     const updatedEvents = events.map(e => 
       e.id === updatedEvent.id ? updatedEvent : e
     );
@@ -106,8 +111,8 @@ const Dashboard: React.FC = () => {
 
   // Обработчики для шаблонов
   const handleTemplateAdd = (templateData: Omit<Template, 'id'>) => {
-    const newTemplate = { 
-      ...templateData, 
+    const newTemplate = {
+      ...templateData,
       id: uuidv4(),
       type: templateData.type || 'task', // добавляем значение по умолчанию
       createdAt: new Date().toISOString()
@@ -124,7 +129,7 @@ const Dashboard: React.FC = () => {
   };
 
   const handleTemplateEdit = (updatedTemplate: Template) => {
-    const updatedTemplates = templates.map(t => 
+    const updatedTemplates = templates.map(t =>
       t.id === updatedTemplate.id ? updatedTemplate : t
     );
     setTemplates(updatedTemplates);
@@ -168,7 +173,7 @@ const Dashboard: React.FC = () => {
         <Content style={{ padding: '24px' }}>
           <Row gutter={[16, 16]}>
             <Col xs={24} sm={12} md={6}>
-              <ProjectsColumn 
+              <ProjectsColumn
                 projects={projects}
                 onProjectAdd={handleProjectAdd}
                 onProjectDelete={handleProjectDelete}
@@ -177,7 +182,7 @@ const Dashboard: React.FC = () => {
             </Col>
 
             <Col xs={24} sm={12} md={6}>
-              <TasksColumn 
+              <TasksColumn
                 tasks={tasks}
                 onTaskAdd={handleTaskAdd}
                 onTaskDelete={handleTaskDelete}
@@ -186,7 +191,7 @@ const Dashboard: React.FC = () => {
             </Col>
 
             <Col xs={24} sm={12} md={6}>
-              <EventsColumn 
+              <EventsColumn
                 events={events}
                 onEventAdd={handleEventAdd}
                 onEventDelete={handleEventDelete}
@@ -195,13 +200,16 @@ const Dashboard: React.FC = () => {
             </Col>
 
             <Col xs={24} sm={12} md={6}>
-              <TemplateColumn 
+              <TemplateColumn
                 templates={templates}
+                events={events}
+                tasks={tasks}
                 onTemplateAdd={handleTemplateAdd}
                 onTemplateDelete={handleTemplateDelete}
                 onTemplateEdit={handleTemplateEdit}
                 onTemplateUse={handleTemplateUse}
               />
+
             </Col>
           </Row>
         </Content>

@@ -1,4 +1,3 @@
-// components/ProjectsColumn/index.tsx
 import React, { useState } from 'react';
 import {
   Card,
@@ -11,10 +10,6 @@ import {
   Modal,
   Form,
   Input,
-  DatePicker,
-  Tag,
-  Space,
-  Select,
   Dropdown,
   Menu
 } from 'antd';
@@ -22,17 +17,12 @@ import {
   PlusOutlined,
   DeleteOutlined,
   EditOutlined,
-  ProjectOutlined,
-  CalendarOutlined,
   MoreOutlined
 } from '@ant-design/icons';
-import { Project } from '../../types';
-import { ProjectsColumnProps } from './types';
-import dayjs from 'dayjs';
+import { Project, ProjectsColumnProps } from '../../../../interfaces/interfase';
 
 const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
-const { RangePicker } = DatePicker;
 
 const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
   projects,
@@ -49,16 +39,11 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      const projectData = {
-        ...values,
-        startDate: values.dates[0].format('YYYY-MM-DD'),
-        endDate: values.dates[1].format('YYYY-MM-DD')
-      };
-
+      
       if (editingProject) {
-        onProjectEdit({ ...editingProject, ...projectData });
+        onProjectEdit({ ...editingProject, ...values });
       } else {
-        onProjectAdd(projectData);
+        onProjectAdd(values);
       }
       setIsModalVisible(false);
       form.resetFields();
@@ -76,21 +61,8 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
 
   const showEditModal = (project: Project) => {
     setEditingProject(project);
-    form.setFieldsValue({
-      ...project,
-      dates: [dayjs(project.startDate), dayjs(project.endDate)]
-    });
+    form.setFieldsValue(project);
     setIsModalVisible(true);
-  };
-
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, string> = {
-      'active': 'green',
-      'pending': 'orange',
-      'completed': 'blue',
-      'cancelled': 'red'
-    };
-    return colors[status.toLowerCase()] || 'default';
   };
 
   const renderContent = () => {
@@ -163,31 +135,16 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
             ]}
           >
             <List.Item.Meta
-              avatar={<ProjectOutlined style={{ fontSize: '24px' }} />}
-              title={
-                <Space>
-                  {project.name}
-                  <Tag color={getStatusColor(project.status)}>
-                    {project.status}
-                  </Tag>
-                </Space>
-              }
+              title={project.name}
               description={
-                <Space direction="vertical" size="small">
-                  {project.description && (
-                    <Paragraph type="secondary" ellipsis={{ rows: 2 }}>
-                      {project.description}
-                    </Paragraph>
-                  )}
-                  <Space>
-                    <CalendarOutlined />
-                    {`${project.startDate} - ${project.endDate}`}
-                  </Space>
-                </Space>
+                project.description && (
+                  <Paragraph type="secondary" ellipsis={{ rows: 2 }}>
+                    {project.description}
+                  </Paragraph>
+                )
               }
             />
           </List.Item>
-
         )}
         style={{
           height: 'calc(100vh - 200px)',
@@ -204,10 +161,10 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
         extra={
           <Button
             type="primary"
+            ghost
             icon={<PlusOutlined />}
             onClick={() => setIsModalVisible(true)}
             disabled={loading}
-            ghost
           >
             Создать проект
           </Button>
@@ -224,7 +181,6 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
         onCancel={handleModalCancel}
         okText={editingProject ? "Сохранить" : "Создать"}
         cancelText="Отмена"
-        width={600}
       >
         <Form
           form={form}
@@ -243,29 +199,10 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
           >
             <TextArea rows={4} />
           </Form.Item>
-          <Form.Item
-            name="dates"
-            label="Период"
-            rules={[{ required: true, message: 'Выберите период проекта' }]}
-          >
-            <RangePicker style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item
-            name="status"
-            label="Статус"
-            rules={[{ required: true, message: 'Выберите статус проекта' }]}
-          >
-            <Select>
-              <Select.Option value="active">Активный</Select.Option>
-              <Select.Option value="pending">В ожидании</Select.Option>
-              <Select.Option value="completed">Завершен</Select.Option>
-              <Select.Option value="cancelled">Отменен</Select.Option>
-            </Select>
-          </Form.Item>
         </Form>
       </Modal>
     </>
   );
 };
 
-export default ProjectsColumn
+export default ProjectsColumn;

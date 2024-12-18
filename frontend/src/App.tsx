@@ -51,6 +51,7 @@ const App: React.FC = () => {
             <Route path="event" element={<Event />} />
             <Route path="template" element={<Dashboard />} />
             <Route path="project" element={<Project />} />
+            
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

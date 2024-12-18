@@ -1,4 +1,3 @@
-// components/EventsColumn/index.tsx
 import React, { useState } from 'react';
 import {
   Card,
@@ -11,11 +10,6 @@ import {
   Modal,
   Form,
   Input,
-  DatePicker,
-  TimePicker,
-  Tag,
-  Space,
-  Select,
   Dropdown,
   Menu
 } from 'antd';
@@ -23,13 +17,10 @@ import {
   PlusOutlined,
   DeleteOutlined,
   EditOutlined,
-  CalendarOutlined,
-  ClockCircleOutlined,
   MoreOutlined
 } from '@ant-design/icons';
-import { Event } from '../../types';
-import { EventsColumnProps } from './types';
-import dayjs from 'dayjs';
+import { EventsColumnProps, Event as CustomEvent } from '../../../../interfaces/interfase';
+
 
 const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
@@ -43,22 +34,17 @@ const EventsColumn: React.FC<EventsColumnProps> = ({
   onEventEdit
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editingEvent, setEditingEvent] = useState<CustomEvent | null>(null);
   const [form] = Form.useForm();
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      const eventData = {
-        ...values,
-        date: values.date.format('YYYY-MM-DD'),
-        time: values.time.format('HH:mm')
-      };
-
+      
       if (editingEvent) {
-        onEventEdit({ ...editingEvent, ...eventData });
+        onEventEdit({ ...editingEvent, ...values });
       } else {
-        onEventAdd(eventData);
+        onEventAdd(values);
       }
       setIsModalVisible(false);
       form.resetFields();
@@ -74,23 +60,10 @@ const EventsColumn: React.FC<EventsColumnProps> = ({
     setEditingEvent(null);
   };
 
-  const showEditModal = (event: Event) => {
+  const showEditModal = (event: CustomEvent) => {
     setEditingEvent(event);
-    form.setFieldsValue({
-      ...event,
-      date: dayjs(event.date),
-      time: dayjs(event.time, 'HH:mm')
-    });
+    form.setFieldsValue(event);
     setIsModalVisible(true);
-  };
-
-  const getPriorityColor = (priority: string) => {
-    const colors: Record<string, string> = {
-      'high': 'red',
-      'medium': 'orange',
-      'low': 'green'
-    };
-    return colors[priority.toLowerCase()] || 'blue';
   };
 
   const renderContent = () => {
@@ -105,16 +78,10 @@ const EventsColumn: React.FC<EventsColumnProps> = ({
       );
     }
 
-    const sortedEvents = [...events].sort((a, b) => {
-      const dateA = new Date(`${a.date} ${a.time}`);
-      const dateB = new Date(`${b.date} ${b.time}`);
-      return dateA.getTime() - dateB.getTime();
-    });
-
     return (
       <List
         loading={loading}
-        dataSource={sortedEvents}
+        dataSource={events}
         locale={{
           emptyText: (
             <Empty
@@ -169,28 +136,13 @@ const EventsColumn: React.FC<EventsColumnProps> = ({
             ]}
           >
             <List.Item.Meta
-              title={
-                <Space>
-                  {event.title}
-                  <Tag color={getPriorityColor(event.priority)}>
-                    {event.priority}
-                  </Tag>
-                </Space>
-              }
+              title={event.title}
               description={
-                <Space direction="vertical" size="small">
-                  {event.description && (
-                    <Paragraph type="secondary" ellipsis={{ rows: 2 }}>
-                      {event.description}
-                    </Paragraph>
-                  )}
-                  <Space>
-                    <CalendarOutlined />
-                    {event.date}
-                    <ClockCircleOutlined />
-                    {event.time}
-                  </Space>
-                </Space>
+                event.description && (
+                  <Paragraph type="secondary" ellipsis={{ rows: 2 }}>
+                    {event.description}
+                  </Paragraph>
+                )
               }
             />
           </List.Item>
@@ -248,35 +200,10 @@ const EventsColumn: React.FC<EventsColumnProps> = ({
           >
             <TextArea rows={4} />
           </Form.Item>
-          <Form.Item
-            name="date"
-            label="Дата"
-            rules={[{ required: true, message: 'Выберите дату' }]}
-          >
-            <DatePicker style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item
-            name="time"
-            label="Время"
-            rules={[{ required: true, message: 'Выберите время' }]}
-          >
-            <TimePicker format="HH:mm" style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item
-            name="priority"
-            label="Приоритет"
-            rules={[{ required: true, message: 'Выберите приоритет' }]}
-          >
-            <Select>
-              <Select.Option value="high">Высокий</Select.Option>
-              <Select.Option value="medium">Средний</Select.Option>
-              <Select.Option value="low">Низкий</Select.Option>
-            </Select>
-          </Form.Item>
         </Form>
       </Modal>
     </>
   );
 };
 
-export default EventsColumn
+export default EventsColumn;

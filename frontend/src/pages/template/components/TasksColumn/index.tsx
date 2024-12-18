@@ -21,8 +21,7 @@ import {
   CheckOutlined, 
   MoreOutlined
 } from '@ant-design/icons';
-import { Task } from '../../types';
-import { TasksColumnProps } from './types';
+import { Task, TasksColumnProps } from '../../../../interfaces/interfase';
 
 const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
