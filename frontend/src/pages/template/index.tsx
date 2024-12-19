@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import ProjectsColumn from './components/ProjectsColumn';
 import TasksColumn from './components/TasksColumn';
 import EventsColumn from './components/EventsColumn';
-import TemplateColumn from './components/TemplateColumn';
+import TemplateColumn from './components/TemplateDocsColumn';
 import { projectStorage, taskStorage, eventStorage, templateStorage } from '../../services/templateStorage';
 import { Project, Task, Template, Event as CustomEvent } from '../../interfaces/interfase';
 
