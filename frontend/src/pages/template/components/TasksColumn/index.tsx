@@ -53,7 +53,6 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
       console.error('Validation failed:', error);
     }
   };
-
   const handleModalCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
@@ -136,7 +135,7 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
           ]}
         >
           <List.Item.Meta
-            title={task.title}
+            title={task.name}
             description={task.description}
           />
         </List.Item>
@@ -182,7 +181,7 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
           layout="vertical"
         >
           <Form.Item
-            name="title"
+            name="name"
             label="Название"
             rules={[{ required: true, message: 'Введите название задачи' }]}
           >

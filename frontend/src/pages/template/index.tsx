@@ -34,7 +34,12 @@ const Dashboard: React.FC = () => {
     const newProject = {
       ...projectData,
       id: uuidv4(),
-      status: projectData.status || 'pending'
+      status: projectData.status || 'pending',
+      linkedItems: {
+        tasks: [],
+        events: [],
+        templates: []
+      }
     };
     const updatedProjects = [...projects, newProject];
     setProjects(updatedProjects);
@@ -102,7 +107,7 @@ const Dashboard: React.FC = () => {
   };
 
   const handleEventEdit = (updatedEvent: CustomEvent) => {
-    const updatedEvents = events.map(e => 
+    const updatedEvents = events.map(e =>
       e.id === updatedEvent.id ? updatedEvent : e
     );
     setEvents(updatedEvents);
@@ -114,13 +119,13 @@ const Dashboard: React.FC = () => {
     const newTemplate = {
       ...templateData,
       id: uuidv4(),
-      type: templateData.type || 'task', // добавляем значение по умолчанию
       createdAt: new Date().toISOString()
     };
     const updatedTemplates = [...templates, newTemplate];
     setTemplates(updatedTemplates);
     templateStorage.saveTemplates(updatedTemplates);
   };
+
 
   const handleTemplateDelete = (templateId: string) => {
     const updatedTemplates = templates.filter(t => t.id !== templateId);
@@ -136,36 +141,8 @@ const Dashboard: React.FC = () => {
     templateStorage.saveTemplates(updatedTemplates);
   };
 
-  const handleTemplateUse = (template: Template) => {
-    // В зависимости от типа шаблона создаем соответствующий элемент
-    switch (template.type) {
-      case 'project':
-        handleProjectAdd({
-          ...template.content,
-          name: `${template.name} (копия)`,
-          startDate: new Date().toISOString(),
-          endDate: new Date().toISOString()
-        });
-        break;
-      case 'task':
-        handleTaskAdd({
-          ...template.content,
-          title: `${template.name} (копия)`,
-          dueDate: new Date().toISOString()
-        });
-        break;
-      case 'event':
-        handleEventAdd({
-          ...template.content,
-          title: `${template.name} (копия)`,
-          date: new Date().toISOString(),
-          time: new Date().toISOString()
-        });
-        break;
-      default:
-        console.warn('Неизвестный тип шаблона:', template.type);
-    }
-  };
+
+
 
   return (
     <Layout>
@@ -175,6 +152,9 @@ const Dashboard: React.FC = () => {
             <Col xs={24} sm={12} md={6}>
               <ProjectsColumn
                 projects={projects}
+                tasks={tasks}
+                events={events}
+                templates={templates}
                 onProjectAdd={handleProjectAdd}
                 onProjectDelete={handleProjectDelete}
                 onProjectEdit={handleProjectEdit}
@@ -202,14 +182,12 @@ const Dashboard: React.FC = () => {
             <Col xs={24} sm={12} md={6}>
               <TemplateColumn
                 templates={templates}
-                events={events}
-                tasks={tasks}
+                loading={false}     // добавляем пропс loading
+                error={undefined}   // добавляем пропс error
                 onTemplateAdd={handleTemplateAdd}
                 onTemplateDelete={handleTemplateDelete}
                 onTemplateEdit={handleTemplateEdit}
-                onTemplateUse={handleTemplateUse}
               />
-
             </Col>
           </Row>
         </Content>

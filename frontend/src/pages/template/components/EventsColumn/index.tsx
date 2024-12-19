@@ -136,7 +136,7 @@ const EventsColumn: React.FC<EventsColumnProps> = ({
             ]}
           >
             <List.Item.Meta
-              title={event.title}
+              title={event.name}
               description={
                 event.description && (
                   <Paragraph type="secondary" ellipsis={{ rows: 2 }}>
@@ -188,7 +188,7 @@ const EventsColumn: React.FC<EventsColumnProps> = ({
           layout="vertical"
         >
           <Form.Item
-            name="title"
+            name="name"
             label="Название"
             rules={[{ required: true, message: 'Введите название события' }]}
           >

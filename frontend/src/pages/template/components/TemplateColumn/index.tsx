@@ -1,151 +1,192 @@
 import React, { useState } from 'react';
-import { List, Button, Modal, Form, Input, Menu, Dropdown, Typography, Select, Spin } from 'antd';
-import { DeleteOutlined, EditOutlined, PlusOutlined, MoreOutlined } from '@ant-design/icons';
-import { templateStorage } from '../../../../services/templateStorage';
-import { v4 as uuidv4 } from 'uuid';
+import {
+  Card,
+  List,
+  Button,
+  Typography,
+  Popconfirm,
+  Empty,
+  Alert,
+  Modal,
+  Form,
+  Input,
+  Dropdown,
+  Menu
+} from 'antd';
+import {
+  PlusOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  MoreOutlined
+} from '@ant-design/icons';
 import { Template, TemplateColumnProps } from '../../../../interfaces/interfase';
 
-const { Text } = Typography;
-
-
-
+const { Title, Paragraph } = Typography;
+const { TextArea } = Input;
 
 const TemplateColumn: React.FC<TemplateColumnProps> = ({
   templates,
-  events,
-  tasks,
+  loading = false,
+  error,
   onTemplateAdd,
   onTemplateDelete,
-  onTemplateEdit,
-  onTemplateUse,
-  loading,
-  error
+  onTemplateEdit
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const [form] = Form.useForm();
 
-  const showCreateModal = () => {
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+      
+      if (editingTemplate) {
+        onTemplateEdit({ ...editingTemplate, ...values });
+      } else {
+        onTemplateAdd({
+          ...values,
+        });
+      }
+      setIsModalVisible(false);
+      form.resetFields();
+      setEditingTemplate(null);
+    } catch (error) {
+      console.error('Validation failed:', error);
+    }
+  };
+
+  const handleModalCancel = () => {
+    setIsModalVisible(false);
     form.resetFields();
     setEditingTemplate(null);
-    setIsModalVisible(true);
   };
 
   const showEditModal = (template: Template) => {
-    form.setFieldsValue({
-      name: template.name,
-      description: template.description || '',
-      type: template.type,
-    });
     setEditingTemplate(template);
+    form.setFieldsValue(template);
     setIsModalVisible(true);
   };
 
-  const handleSubmit = (values: any) => {
-    if (editingTemplate) {
-      onTemplateEdit({
-        ...editingTemplate,
-        ...values,
-        updatedAt: new Date().toISOString()
-      });
-    } else {
-      onTemplateAdd({
-        ...values,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        linkedItems: {
-          events: [],
-          tasks: [],
-          templates: []
-        }
-      });
+  const renderContent = () => {
+    if (error) {
+      return (
+        <Alert
+          message="Ошибка"
+          description={error}
+          type="error"
+          showIcon
+        />
+      );
     }
-    setIsModalVisible(false);
-    form.resetFields();
+
+    return (
+      <List
+        loading={loading}
+        dataSource={templates}
+        locale={{
+          emptyText: (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="Нет шаблонов"
+            >
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => setIsModalVisible(true)}
+              >
+                Добавить первый шаблон
+              </Button>
+            </Empty>
+          )
+        }}
+        renderItem={(template) => (
+          <List.Item
+            key={template.id}
+            actions={[
+              <Dropdown
+                overlay={
+                  <Menu>
+                    <Menu.Item
+                      key="edit"
+                      icon={<EditOutlined />}
+                      onClick={() => showEditModal(template)}
+                    >
+                      Редактировать
+                    </Menu.Item>
+                    <Menu.Item
+                      key="delete"
+                      danger
+                      icon={<DeleteOutlined />}
+                    >
+                      <Popconfirm
+                        title="Удалить шаблон?"
+                        description="Это действие нельзя отменить"
+                        onConfirm={() => onTemplateDelete(template.id)}
+                        okText="Да"
+                        cancelText="Нет"
+                      >
+                        Удалить
+                      </Popconfirm>
+                    </Menu.Item>
+                  </Menu>
+                }
+                trigger={['click']}
+              >
+                <Button type="link" icon={<MoreOutlined />} />
+              </Dropdown>
+            ]}
+          >
+            <List.Item.Meta
+              title={template.name}
+              description={
+                template.description && (
+                  <Paragraph type="secondary" ellipsis={{ rows: 2 }}>
+                    {template.description}
+                  </Paragraph>
+                )
+              }
+            />
+          </List.Item>
+        )}
+        style={{
+          height: 'calc(100vh - 200px)',
+          overflowY: 'auto'
+        }}
+      />
+    );
   };
 
-  const getMenu = (template: Template) => (
-    <Menu>
-      <Menu.Item key="edit" onClick={() => showEditModal(template)}>
-        <EditOutlined /> Редактировать
-      </Menu.Item>
-      <Menu.Item key="delete" onClick={() => onTemplateDelete(template.id)}>
-        <DeleteOutlined /> Удалить
-      </Menu.Item>
-      <Menu.Item key="use" onClick={() => onTemplateUse(template)}>
-        Использовать шаблон
-      </Menu.Item>
-    </Menu>
-  );
-
-  if (error) {
-    return <div style={{ padding: '16px', color: 'red' }}>{error}</div>;
-  }
-
   return (
-    <div style={{ padding: '16px', background: '#fff', borderRadius: '8px', height: '100%' }}>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        marginBottom: '16px' 
-      }}>
-        <Text strong>Шаблоны</Text>
-        <Button 
-          type="primary" 
-          icon={<PlusOutlined />}
-          onClick={showCreateModal}
-          disabled={loading}
-        >
-          Создать
-        </Button>
-      </div>
-
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '20px' }}>
-          <Spin />
-        </div>
-      ) : (
-        <List
-          style={{ height: 'calc(100% - 56px)', overflowY: 'auto' }}
-          dataSource={templates}
-          renderItem={template => (
-            <List.Item
-              style={{ 
-                padding: '12px', 
-                borderRadius: '4px', 
-                marginBottom: '8px',
-                border: '1px solid #f0f0f0'
-              }}
-              actions={[
-                <Dropdown overlay={getMenu(template)} trigger={['click']}>
-                  <Button type="text" icon={<MoreOutlined />} />
-                </Dropdown>
-              ]}
-            >
-              <List.Item.Meta
-                title={template.name}
-                description={template.description}
-              />
-            </List.Item>
-          )}
-        />
-      )}
+    <>
+      <Card
+        title={<Title level={4}>Шаблоны</Title>}
+        extra={
+          <Button
+            type="primary"
+            ghost
+            icon={<PlusOutlined />}
+            onClick={() => setIsModalVisible(true)}
+            disabled={loading}
+          >
+            Добавить шаблон
+          </Button>
+        }
+        style={{ width: '100%', height: '100%' }}
+      >
+        {renderContent()}
+      </Card>
 
       <Modal
-        title={editingTemplate ? "Редактировать шаблон" : "Создать шаблон"}
-        visible={isModalVisible}
-        onOk={() => form.submit()}
-        onCancel={() => {
-          setIsModalVisible(false);
-          form.resetFields();
-        }}
-        confirmLoading={loading}
+        title={editingTemplate ? "Редактировать шаблон" : "Добавить шаблон"}
+        open={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={handleModalCancel}
+        okText={editingTemplate ? "Сохранить" : "Добавить"}
+        cancelText="Отмена"
       >
         <Form
           form={form}
           layout="vertical"
-          onFinish={handleSubmit}
         >
           <Form.Item
             name="name"
@@ -154,28 +195,15 @@ const TemplateColumn: React.FC<TemplateColumnProps> = ({
           >
             <Input />
           </Form.Item>
-
           <Form.Item
             name="description"
             label="Описание"
           >
-            <Input.TextArea />
-          </Form.Item>
-
-          <Form.Item
-            name="type"
-            label="Тип"
-            rules={[{ required: true, message: 'Выберите тип шаблона' }]}
-          >
-            <Select>
-              <Select.Option value="project">Проект</Select.Option>
-              <Select.Option value="task">Задача</Select.Option>
-              <Select.Option value="event">Событие</Select.Option>
-            </Select>
+            <TextArea rows={4} />
           </Form.Item>
         </Form>
       </Modal>
-    </div>
+    </>
   );
 };
 

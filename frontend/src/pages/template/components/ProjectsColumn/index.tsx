@@ -11,7 +11,10 @@ import {
   Form,
   Input,
   Dropdown,
-  Menu
+  Menu,
+  Select,
+  Space,
+  Tag
 } from 'antd';
 import {
   PlusOutlined,
@@ -26,6 +29,9 @@ const { TextArea } = Input;
 
 const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
   projects,
+  tasks,
+  events,
+  templates,
   loading = false,
   error,
   onProjectAdd,
@@ -40,10 +46,19 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
     try {
       const values = await form.validateFields();
       
+      const projectData = {
+        ...values,
+        linkedItems: {
+          tasks: values.tasks || [],
+          events: values.events || [],
+          templates: values.templates || []
+        }
+      };
+
       if (editingProject) {
-        onProjectEdit({ ...editingProject, ...values });
+        onProjectEdit({ ...editingProject, ...projectData });
       } else {
-        onProjectAdd(values);
+        onProjectAdd(projectData);
       }
       setIsModalVisible(false);
       form.resetFields();
@@ -64,6 +79,51 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
     form.setFieldsValue(project);
     setIsModalVisible(true);
   };
+  const renderLinkedItems = (project: Project) => {
+    // Проверяем наличие linkedItems
+    if (!project.linkedItems) {
+      return null;
+    }
+  
+    const linkedTasks = tasks.filter(task => 
+      project.linkedItems?.tasks?.includes(task.id)
+    );
+    const linkedEvents = events.filter(event => 
+      project.linkedItems?.events?.includes(event.id)
+    );
+    const linkedTemplates = templates.filter(template => 
+      project.linkedItems?.templates?.includes(template.id)
+    );
+  
+    return (
+      <Space direction="vertical" size={4}>
+        {linkedTasks.length > 0 && (
+          <div>
+            <Typography.Text type="secondary">Задачи: </Typography.Text>
+            {linkedTasks.map(task => (
+              <Tag key={task.id}>{task.name}</Tag>
+            ))}
+          </div>
+        )}
+        {linkedEvents.length > 0 && (
+          <div>
+            <Typography.Text type="secondary">События: </Typography.Text>
+            {linkedEvents.map(event => (
+              <Tag key={event.id}>{event.name}</Tag>
+            ))}
+          </div>
+        )}
+        {linkedTemplates.length > 0 && (
+          <div>
+            <Typography.Text type="secondary">Шаблоны: </Typography.Text>
+            {linkedTemplates.map(template => (
+              <Tag key={template.id}>{template.name}</Tag>
+            ))}
+          </div>
+        )}
+      </Space>
+    );
+  };
 
   const renderContent = () => {
     if (error) {
@@ -76,9 +136,9 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
         />
       );
     }
-
+  
     return (
-      <List
+      <List<Project> // явно указываем тип для List
         loading={loading}
         dataSource={projects}
         locale={{
@@ -97,11 +157,12 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
             </Empty>
           )
         }}
-        renderItem={(project) => (
+        renderItem={(project: Project) => ( // явно указываем тип для project
           <List.Item
             key={project.id}
             actions={[
               <Dropdown
+                key="actions"
                 overlay={
                   <Menu>
                     <Menu.Item
@@ -137,11 +198,14 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
             <List.Item.Meta
               title={project.name}
               description={
-                project.description && (
-                  <Paragraph type="secondary" ellipsis={{ rows: 2 }}>
-                    {project.description}
-                  </Paragraph>
-                )
+                <Space direction="vertical" size={8}>
+                  {project.description && (
+                    <Typography.Paragraph type="secondary" ellipsis={{ rows: 2 }}>
+                      {project.description}
+                    </Typography.Paragraph>
+                  )}
+                  {renderLinkedItems(project)}
+                </Space>
               }
             />
           </List.Item>
@@ -156,17 +220,17 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
 
   return (
     <>
-      <Card
+      <Card 
         title={<Title level={4}>Проекты</Title>}
         extra={
-          <Button
-            type="primary"
-            ghost
+          <Button 
+            type="primary" 
             icon={<PlusOutlined />}
             onClick={() => setIsModalVisible(true)}
             disabled={loading}
+            ghost
           >
-            Создать проект
+            Добавить проект
           </Button>
         }
         style={{ width: '100%', height: '100%' }}
@@ -175,17 +239,14 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
       </Card>
 
       <Modal
-        title={editingProject ? "Редактировать проект" : "Создать проект"}
+        title={editingProject ? "Редактировать проект" : "Добавить проект"}
         open={isModalVisible}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
-        okText={editingProject ? "Сохранить" : "Создать"}
+        okText={editingProject ? "Сохранить" : "Добавить"}
         cancelText="Отмена"
       >
-        <Form
-          form={form}
-          layout="vertical"
-        >
+        <Form form={form} layout="vertical">
           <Form.Item
             name="name"
             label="Название"
@@ -193,16 +254,69 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
           >
             <Input />
           </Form.Item>
-          <Form.Item
-            name="description"
+
+          <Form.Item 
+            name="description" 
             label="Описание"
           >
             <TextArea rows={4} />
           </Form.Item>
+
+          <Form.Item 
+            name={['linkedItems', 'tasks']} 
+            label="Связанные задачи"
+          >
+            <Select
+              mode="multiple"
+              placeholder="Выберите задачи"
+              optionFilterProp="children"
+            >
+              {tasks.map(task => (
+                <Select.Option key={task.id} value={task.id}>
+                  {task.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item 
+            name={['linkedItems', 'events']} 
+            label="Связанные события"
+          >
+            <Select
+              mode="multiple"
+              placeholder="Выберите события"
+              optionFilterProp="children"
+            >
+              {events.map(event => (
+                <Select.Option key={event.id} value={event.id}>
+                  {event.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item 
+            name={['linkedItems', 'templates']} 
+            label="Связанные шаблоны"
+          >
+            <Select
+              mode="multiple"
+              placeholder="Выберите шаблоны"
+              optionFilterProp="children"
+            >
+              {templates.map(template => (
+                <Select.Option key={template.id} value={template.id}>
+                  {template.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
         </Form>
       </Modal>
     </>
-  );
+);
+
 };
 
 export default ProjectsColumn;

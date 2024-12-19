@@ -117,37 +117,57 @@ export const taskStorage = {
 
 export const templateStorage = {
     getTemplates: () => storage.get(STORAGE_KEYS.TEMPLATES),
-    saveTemplates: (templates: Template[]) => storage.set(STORAGE_KEYS.TEMPLATES, templates),
-    saveTemplate: (template: ProjectTemplate) => {
+    
+    saveTemplates: (templates: Template[]) => {
         try {
-            const templates = storage.get(STORAGE_KEYS.TEMPLATES);
-            templates.push(template);
             storage.set(STORAGE_KEYS.TEMPLATES, templates);
+        } catch (error) {
+            console.error('Ошибка сохранения шаблонов:', error);
+            throw error;
+        }
+    },
+
+    saveTemplate: (templateData: Omit<Template, 'id'>) => {
+        try {
+            const templates = storage.get(STORAGE_KEYS.TEMPLATES) || [];
+            const newTemplate = {
+                name: templateData.name,
+                description: templateData.description,
+                id: uuidv4(),
+            };
+            templates.push(newTemplate);
+            storage.set(STORAGE_KEYS.TEMPLATES, templates);
+            return newTemplate;
         } catch (error) {
             console.error('Ошибка сохранения шаблона:', error);
             throw error;
         }
     },
+
     deleteTemplate: (templateId: string) => {
         try {
-            const templates = storage.get(STORAGE_KEYS.TEMPLATES);
-            const filtered = templates.filter((t: Template) => t.id !== templateId);
-            storage.set(STORAGE_KEYS.TEMPLATES, filtered);
+            const templates = storage.get(STORAGE_KEYS.TEMPLATES) || [];
+            const filteredTemplates = templates.filter((t: Template) => t.id !== templateId);
+            storage.set(STORAGE_KEYS.TEMPLATES, filteredTemplates);
         } catch (error) {
             console.error('Ошибка удаления шаблона:', error);
             throw error;
         }
     },
-    updateTemplate: (updatedTemplate: ProjectTemplate) => {
+
+    updateTemplate: (updatedTemplate: Template) => {
         try {
-            const templates = storage.get(STORAGE_KEYS.TEMPLATES);
+            const templates = storage.get(STORAGE_KEYS.TEMPLATES) || [];
             const index = templates.findIndex((t: Template) => t.id === updatedTemplate.id);
+            
             if (index !== -1) {
                 templates[index] = {
-                    ...updatedTemplate,
-                    updatedAt: new Date().toISOString()
+                    name: updatedTemplate.name,
+                    description: updatedTemplate.description,
+                    id: updatedTemplate.id,
                 };
                 storage.set(STORAGE_KEYS.TEMPLATES, templates);
+                return templates[index];
             }
         } catch (error) {
             console.error('Ошибка обновления шаблона:', error);
@@ -155,6 +175,7 @@ export const templateStorage = {
         }
     }
 };
+
 
 export const eventStorage = {
     getEvents: () => storage.get(STORAGE_KEYS.EVENTS),
@@ -196,3 +217,7 @@ export const eventStorage = {
         }
     }
 };
+function uuidv4() {
+    throw new Error("Function not implemented.");
+}
+

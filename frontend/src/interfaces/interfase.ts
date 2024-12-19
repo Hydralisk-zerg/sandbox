@@ -50,12 +50,14 @@ export interface CountryData {
   numeric?: string;
 }
 
-// События
-export interface Event {
+export interface BaseItem {
   id: string;
-  title: string;
-  name?: string;
-  description?: string;
+  name: string;
+  description: string;
+}
+
+// События
+export interface Event extends BaseItem{
   date: string;
   time: string;
   status: 'pending' | 'completed';
@@ -63,40 +65,25 @@ export interface Event {
 }
 
 // Проекты
-export interface Project {
-  id: string;
-  title: string;
-  name: string;
-  description?: string;
-  startDate: string;
-  endDate: string;
+export interface Project extends BaseItem{
+  linkedItems: {
+    tasks: string[];      // ID связанных задач
+    events: string[];     // ID связанных событий
+    templates: string[];  // ID связанных шаблонов
+  };
   status: 'active' | 'completed' | 'pending';
 }
-
 // Задачи
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
+export interface Task extends BaseItem{
   dueDate: string;
   status: 'todo' | 'in_progress' | 'done';
   priority: 'low' | 'medium' | 'high';
 }
 
 // Шаблоны
-export interface Template {
-  id: string;
-  name: string;
-  description?: string;
-  type: 'project' | 'task' | 'event';
-  content: any;
-  created_by?: number;
-  created_at?: string;
-  linkedItems: {
-    events: string[];
-    tasks: string[];
-    templates: string[];
-  };
+
+export interface Template extends BaseItem{
+  createdAt: string;
 }
 
 // Типы элементов
@@ -138,17 +125,19 @@ export interface EventsColumnProps extends BaseColumnProps {
 
 export interface ProjectsColumnProps extends BaseColumnProps {
   projects: Project[];
+  tasks: Task[];         // Добавляем существующие задачи
+  events: Event[];       // Добавляем существующие события
+  templates: Template[]; // Добавляем существующие шаблоны
   onProjectAdd: (project: Omit<Project, 'id'>) => void;
   onProjectDelete: (id: string) => void;
   onProjectEdit: (project: Project) => void;
 }
 
-export interface TemplateColumnProps extends BaseColumnProps {
+export interface TemplateColumnProps {
   templates: Template[];
-  events: Event[];
-  tasks: Task[];
+  loading?: boolean; // добавляем опциональное свойство loading
+  error?: string;    // добавляем опциональное свойство error
   onTemplateAdd: (template: Omit<Template, 'id'>) => void;
   onTemplateDelete: (id: string) => void;
   onTemplateEdit: (template: Template) => void;
-  onTemplateUse: (template: Template) => void;
 }
