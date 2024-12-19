@@ -65,11 +65,11 @@ export interface Event extends BaseItem{
 }
 
 // Проекты
-export interface Project extends BaseItem{
+export interface Procedure extends BaseItem{
   linkedItems: {
     tasks: string[];      // ID связанных задач
     events: string[];     // ID связанных событий
-    templates: string[];  // ID связанных шаблонов
+    data: string[];  // ID связанных шаблонов
   };
   status: 'active' | 'completed' | 'pending';
 }
@@ -82,7 +82,7 @@ export interface Task extends BaseItem{
 
 // Шаблоны
 
-export interface Template extends BaseItem{
+export interface Data extends BaseItem{
   createdAt: string;
 }
 
@@ -90,7 +90,7 @@ export interface Template extends BaseItem{
 export enum ElementType {
   EVENT = 'event',
   TASK = 'task',
-  PROJECT = 'project'
+  PROCEDURE = 'procedure'
 }
 
 // API
@@ -123,21 +123,25 @@ export interface EventsColumnProps extends BaseColumnProps {
   onEventEdit: (event: Event) => void;
 }
 
-export interface ProjectsColumnProps extends BaseColumnProps {
-  projects: Project[];
-  tasks: Task[];         // Добавляем существующие задачи
-  events: Event[];       // Добавляем существующие события
-  templates: Template[]; // Добавляем существующие шаблоны
-  onProjectAdd: (project: Omit<Project, 'id'>) => void;
-  onProjectDelete: (id: string) => void;
-  onProjectEdit: (project: Project) => void;
-}
-
-export interface TemplateColumnProps {
-  templates: Template[];
+export interface DataColumnProps {
+  data: Data[];
   loading?: boolean; // добавляем опциональное свойство loading
   error?: string;    // добавляем опциональное свойство error
-  onTemplateAdd: (template: Omit<Template, 'id'>) => void;
-  onTemplateDelete: (id: string) => void;
-  onTemplateEdit: (template: Template) => void;
+  onDataAdd: (data: Omit<Data, 'id'>) => void;
+  onDataDelete: (id: string) => void;
+  onDataEdit: (data: Data) => void;
+}
+
+export interface ProceduresColumnProps {
+  procedures: Procedure[];
+  tasks: BaseItem[];
+  events: BaseItem[];
+  data: BaseItem[];
+  loading?: boolean;
+  error?: string;
+  isFiltered?: boolean;
+  onProcedureAdd: (procedure: Omit<Procedure, 'id'>) => void;
+  onProcedureEdit: (procedure: Procedure) => void;
+  onProcedureDelete: (id: string) => void;
+  onProcedureFilter: (procedure: Procedure) => void;
 }

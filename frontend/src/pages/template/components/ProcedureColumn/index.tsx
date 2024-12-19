@@ -20,49 +20,58 @@ import {
   PlusOutlined,
   DeleteOutlined,
   EditOutlined,
-  MoreOutlined
+  MoreOutlined,
+  FilterOutlined
 } from '@ant-design/icons';
-import { Project, ProjectsColumnProps } from '../../../../interfaces/interfase';
+import { Procedure, ProceduresColumnProps } from '../../../../interfaces/interfase';
+import { v4 as uuidv4 } from 'uuid';
 
-const { Title, Paragraph } = Typography;
+const { Title } = Typography;
 const { TextArea } = Input;
 
-const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
-  projects,
+const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
+  procedures,
   tasks,
   events,
-  templates,
+  data,
   loading = false,
   error,
-  onProjectAdd,
-  onProjectDelete,
-  onProjectEdit
+  isFiltered = false,
+  onProcedureAdd,
+  onProcedureDelete,
+  onProcedureEdit,
+  onProcedureFilter
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [editingProcedure, setEditingProcedure] = useState<Procedure | null>(null);
   const [form] = Form.useForm();
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
       
-      const projectData = {
-        ...values,
+      const procedureData: Omit<Procedure, 'id'> = {
+        name: values.name,
+        description: values.description,
         linkedItems: {
-          tasks: values.tasks || [],
-          events: values.events || [],
-          templates: values.templates || []
-        }
+          tasks: values.linkedItems?.tasks || [],
+          events: values.linkedItems?.events || [],
+          data: values.linkedItems?.data || []
+        },
+        status: values.status || 'active'
       };
 
-      if (editingProject) {
-        onProjectEdit({ ...editingProject, ...projectData });
+      if (editingProcedure) {
+        onProcedureEdit({
+          ...procedureData,
+          id: editingProcedure.id
+        });
       } else {
-        onProjectAdd(projectData);
+        onProcedureAdd(procedureData);
       }
       setIsModalVisible(false);
       form.resetFields();
-      setEditingProject(null);
+      setEditingProcedure(null);
     } catch (error) {
       console.error('Validation failed:', error);
     }
@@ -71,28 +80,37 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
   const handleModalCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
-    setEditingProject(null);
+    setEditingProcedure(null);
   };
 
-  const showEditModal = (project: Project) => {
-    setEditingProject(project);
-    form.setFieldsValue(project);
+  const showEditModal = (procedure: Procedure) => {
+    setEditingProcedure(procedure);
+    form.setFieldsValue({
+      name: procedure.name,
+      description: procedure.description,
+      status: procedure.status,
+      linkedItems: {
+        tasks: procedure.linkedItems?.tasks || [],
+        events: procedure.linkedItems?.events || [],
+        data: procedure.linkedItems?.data || []
+      }
+    });
     setIsModalVisible(true);
   };
-  const renderLinkedItems = (project: Project) => {
-    // Проверяем наличие linkedItems
-    if (!project.linkedItems) {
+
+  const renderLinkedItems = (procedure: Procedure) => {
+    if (!procedure.linkedItems) {
       return null;
     }
   
     const linkedTasks = tasks.filter(task => 
-      project.linkedItems?.tasks?.includes(task.id)
+      procedure.linkedItems?.tasks?.includes(task.id)
     );
     const linkedEvents = events.filter(event => 
-      project.linkedItems?.events?.includes(event.id)
+      procedure.linkedItems?.events?.includes(event.id)
     );
-    const linkedTemplates = templates.filter(template => 
-      project.linkedItems?.templates?.includes(template.id)
+    const linkedData = data.filter(temp => 
+      procedure.linkedItems?.data?.includes(temp.id)
     );
   
     return (
@@ -113,11 +131,11 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
             ))}
           </div>
         )}
-        {linkedTemplates.length > 0 && (
+        {linkedData.length > 0 && (
           <div>
             <Typography.Text type="secondary">Шаблоны: </Typography.Text>
-            {linkedTemplates.map(template => (
-              <Tag key={template.id}>{template.name}</Tag>
+            {linkedData.map(data => (
+              <Tag key={data.id}>{data.name}</Tag>
             ))}
           </div>
         )}
@@ -138,37 +156,44 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
     }
   
     return (
-      <List<Project> // явно указываем тип для List
+      <List<Procedure>
         loading={loading}
-        dataSource={projects}
+        dataSource={procedures}
         locale={{
           emptyText: (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="Нет проектов"
+              description="Нет процедур"
             >
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => setIsModalVisible(true)}
               >
-                Создать первый проект
+                Создать первую процедуру
               </Button>
             </Empty>
           )
         }}
-        renderItem={(project: Project) => ( // явно указываем тип для project
+        renderItem={(procedure: Procedure) => (
           <List.Item
-            key={project.id}
+            key={procedure.id}
             actions={[
               <Dropdown
                 key="actions"
                 overlay={
                   <Menu>
                     <Menu.Item
+                      key="filter"
+                      icon={<FilterOutlined />}
+                      onClick={() => onProcedureFilter(procedure)}
+                    >
+                      {isFiltered ? "Сбросить фильтр" : "Фильтровать связанные"}
+                    </Menu.Item>
+                    <Menu.Item
                       key="edit"
                       icon={<EditOutlined />}
-                      onClick={() => showEditModal(project)}
+                      onClick={() => showEditModal(procedure)}
                     >
                       Редактировать
                     </Menu.Item>
@@ -178,9 +203,9 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
                       icon={<DeleteOutlined />}
                     >
                       <Popconfirm
-                        title="Удалить проект?"
+                        title="Удалить процедуру?"
                         description="Это действие нельзя отменить"
-                        onConfirm={() => onProjectDelete(project.id)}
+                        onConfirm={() => onProcedureDelete(procedure.id)}
                         okText="Да"
                         cancelText="Нет"
                       >
@@ -196,15 +221,20 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
             ]}
           >
             <List.Item.Meta
-              title={project.name}
+              title={
+                <Space>
+                  {procedure.name}
+                  {isFiltered && <Tag color="blue">Отфильтровано</Tag>}
+                </Space>
+              }
               description={
                 <Space direction="vertical" size={8}>
-                  {project.description && (
+                  {procedure.description && (
                     <Typography.Paragraph type="secondary" ellipsis={{ rows: 2 }}>
-                      {project.description}
+                      {procedure.description}
                     </Typography.Paragraph>
                   )}
-                  {renderLinkedItems(project)}
+                  {renderLinkedItems(procedure)}
                 </Space>
               }
             />
@@ -221,7 +251,7 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
   return (
     <>
       <Card 
-        title={<Title level={4}>Проекты</Title>}
+        title={<Title level={4}>Процедуры</Title>}
         extra={
           <Button 
             type="primary" 
@@ -230,7 +260,7 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
             disabled={loading}
             ghost
           >
-            Добавить проект
+            Добавить процедуру
           </Button>
         }
         style={{ width: '100%', height: '100%' }}
@@ -239,18 +269,18 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
       </Card>
 
       <Modal
-        title={editingProject ? "Редактировать проект" : "Добавить проект"}
+        title={editingProcedure ? "Редактировать процедуру" : "Добавить процедуру"}
         open={isModalVisible}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
-        okText={editingProject ? "Сохранить" : "Добавить"}
+        okText={editingProcedure ? "Сохранить" : "Добавить"}
         cancelText="Отмена"
       >
         <Form form={form} layout="vertical">
           <Form.Item
             name="name"
             label="Название"
-            rules={[{ required: true, message: 'Введите название проекта' }]}
+            rules={[{ required: true, message: 'Введите название процедуры' }]}
           >
             <Input />
           </Form.Item>
@@ -260,6 +290,15 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
             label="Описание"
           >
             <TextArea rows={4} />
+          </Form.Item>
+
+          <Form.Item 
+            name="status" 
+            label="Статус"
+            initialValue="active"
+            rules={[{ required: true, message: 'Выберите статус' }]}
+          >
+
           </Form.Item>
 
           <Form.Item 
@@ -297,7 +336,7 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
           </Form.Item>
 
           <Form.Item 
-            name={['linkedItems', 'templates']} 
+            name={['linkedItems', 'data']} 
             label="Связанные шаблоны"
           >
             <Select
@@ -305,9 +344,9 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
               placeholder="Выберите шаблоны"
               optionFilterProp="children"
             >
-              {templates.map(template => (
-                <Select.Option key={template.id} value={template.id}>
-                  {template.name}
+              {data.map(data => (
+                <Select.Option key={data.id} value={data.id}>
+                  {data.name}
                 </Select.Option>
               ))}
             </Select>
@@ -315,8 +354,7 @@ const ProjectsColumn: React.FC<ProjectsColumnProps> = ({
         </Form>
       </Modal>
     </>
-);
-
+  );
 };
 
-export default ProjectsColumn;
+export default ProcedureColumn;

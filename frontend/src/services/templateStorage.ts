@@ -1,14 +1,14 @@
-import { Project, Task, Template, Event as CustomEvent  } from "../interfaces/interfase";
+import { Procedure, Task, Data, Event as CustomEvent  } from "../interfaces/interfase";
 
-export interface ProjectTemplate extends Template {
+export interface ProcedureData extends Data {
     // дополнительные поля для проектного шаблона
   }
 // Константы для ключей хранилища
 const STORAGE_KEYS = {
-    PROJECTS: 'projects',
+    PROCEDURES: 'procedures',
     TASKS: 'tasks',
     EVENTS: 'events',
-    TEMPLATES: 'templates'
+    DATA: 'data'
 };
 
 // Общие функции для работы с localStorage
@@ -33,39 +33,39 @@ const storage = {
     }
 };
 
-export const projectStorage = {
-    getProjects: () => storage.get(STORAGE_KEYS.PROJECTS),
-    saveProjects: (projects: Project[]) => storage.set(STORAGE_KEYS.PROJECTS, projects),
-    saveProject: (project: Project) => {
+export const procedureStorage = {
+    getProcedures: () => storage.get(STORAGE_KEYS.PROCEDURES),
+    saveProcedures: (procedures: Procedure[]) => storage.set(STORAGE_KEYS.PROCEDURES, procedures),
+    saveProcedure: (procedure: Procedure) => {
         try {
-            const projects = storage.get(STORAGE_KEYS.PROJECTS);
-            projects.push(project);
-            storage.set(STORAGE_KEYS.PROJECTS, projects);
+            const procedures = storage.get(STORAGE_KEYS.PROCEDURES);
+            procedures.push(procedure);
+            storage.set(STORAGE_KEYS.PROCEDURES, procedures);
         } catch (error) {
             console.error('Ошибка сохранения проекта:', error);
             throw error;
         }
     },
-    deleteProject: (projectId: string) => {
+    deleteProcedure: (procedureId: string) => {
         try {
-            const projects = storage.get(STORAGE_KEYS.PROJECTS);
-            const filtered = projects.filter((p: Project) => p.id !== projectId);
-            storage.set(STORAGE_KEYS.PROJECTS, filtered);
+            const procedures = storage.get(STORAGE_KEYS.PROCEDURES);
+            const filtered = procedures.filter((p: Procedure) => p.id !== procedureId);
+            storage.set(STORAGE_KEYS.PROCEDURES, filtered);
         } catch (error) {
             console.error('Ошибка удаления проекта:', error);
             throw error;
         }
     },
-    updateProject: (updatedProject: Project) => {
+    updateProcedure: (updatedProcedure: Procedure) => {
         try {
-            const projects = storage.get(STORAGE_KEYS.PROJECTS);
-            const index = projects.findIndex((p: Project) => p.id === updatedProject.id);
+            const procedures = storage.get(STORAGE_KEYS.PROCEDURES);
+            const index = procedures.findIndex((p: Procedure) => p.id === updatedProcedure.id);
             if (index !== -1) {
-                projects[index] = {
-                    ...updatedProject,
+                procedures[index] = {
+                    ...updatedProcedure,
                     updatedAt: new Date().toISOString()
                 };
-                storage.set(STORAGE_KEYS.PROJECTS, projects);
+                storage.set(STORAGE_KEYS.PROCEDURES, procedures);
             }
         } catch (error) {
             console.error('Ошибка обновления проекта:', error);
@@ -115,59 +115,59 @@ export const taskStorage = {
     }
 };
 
-export const templateStorage = {
-    getTemplates: () => storage.get(STORAGE_KEYS.TEMPLATES),
+export const dataStorage = {
+    getData: () => storage.get(STORAGE_KEYS.DATA),
     
-    saveTemplates: (templates: Template[]) => {
+    saveData: (data: Data[]) => {
         try {
-            storage.set(STORAGE_KEYS.TEMPLATES, templates);
+            storage.set(STORAGE_KEYS.DATA, data);
         } catch (error) {
             console.error('Ошибка сохранения шаблонов:', error);
             throw error;
         }
     },
 
-    saveTemplate: (templateData: Omit<Template, 'id'>) => {
+    saveDataAll: (dataData: Omit<Data, 'id'>) => {
         try {
-            const templates = storage.get(STORAGE_KEYS.TEMPLATES) || [];
-            const newTemplate = {
-                name: templateData.name,
-                description: templateData.description,
+            const data = storage.get(STORAGE_KEYS.DATA) || [];
+            const newData = {
+                name: dataData.name,
+                description: dataData.description,
                 id: uuidv4(),
             };
-            templates.push(newTemplate);
-            storage.set(STORAGE_KEYS.TEMPLATES, templates);
-            return newTemplate;
+            data.push(newData);
+            storage.set(STORAGE_KEYS.DATA, data);
+            return newData;
         } catch (error) {
             console.error('Ошибка сохранения шаблона:', error);
             throw error;
         }
     },
 
-    deleteTemplate: (templateId: string) => {
+    deleteData: (dataId: string) => {
         try {
-            const templates = storage.get(STORAGE_KEYS.TEMPLATES) || [];
-            const filteredTemplates = templates.filter((t: Template) => t.id !== templateId);
-            storage.set(STORAGE_KEYS.TEMPLATES, filteredTemplates);
+            const data = storage.get(STORAGE_KEYS.DATA) || [];
+            const filteredData = data.filter((t: Data) => t.id !== dataId);
+            storage.set(STORAGE_KEYS.DATA, filteredData);
         } catch (error) {
             console.error('Ошибка удаления шаблона:', error);
             throw error;
         }
     },
 
-    updateTemplate: (updatedTemplate: Template) => {
+    updateData: (updatedData: Data) => {
         try {
-            const templates = storage.get(STORAGE_KEYS.TEMPLATES) || [];
-            const index = templates.findIndex((t: Template) => t.id === updatedTemplate.id);
+            const data = storage.get(STORAGE_KEYS.DATA) || [];
+            const index = data.findIndex((t: Data) => t.id === updatedData.id);
             
             if (index !== -1) {
-                templates[index] = {
-                    name: updatedTemplate.name,
-                    description: updatedTemplate.description,
-                    id: updatedTemplate.id,
+                data[index] = {
+                    name: updatedData.name,
+                    description: updatedData.description,
+                    id: updatedData.id,
                 };
-                storage.set(STORAGE_KEYS.TEMPLATES, templates);
-                return templates[index];
+                storage.set(STORAGE_KEYS.DATA, data);
+                return data[index];
             }
         } catch (error) {
             console.error('Ошибка обновления шаблона:', error);

@@ -6,7 +6,7 @@ import Layouts from './layout/index';
 import UserPage from './pages/UserPage';
 import { AuthProvider } from './components/AuthContext';
 import DictionaryPage from './pages/dictionary';
-import TaskPage from './pages/task';
+import Task from './pages/task';
 import Project from './pages/project';
 import Event from './pages/event';
 import Dashboard from './pages/template';
@@ -47,7 +47,7 @@ const App: React.FC = () => {
             <Route path="user/:userId" element={<UserPage />} />
             <Route path="dictionary/:dictionaryName" element={<DictionaryPage />} />
             <Route path="" element={<Navigate to="/home" replace />} />
-            <Route path="task" element={<TaskPage />} />
+            <Route path="task" element={<Task />} />
             <Route path="event" element={<Event />} />
             <Route path="template" element={<Dashboard />} />
             <Route path="project" element={<Project />} />

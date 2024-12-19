@@ -19,37 +19,37 @@ import {
   EditOutlined,
   MoreOutlined
 } from '@ant-design/icons';
-import { Template, TemplateColumnProps } from '../../../../interfaces/interfase';
+import { Data, DataColumnProps } from '../../../../interfaces/interfase';
 
 const { Title, Paragraph } = Typography;
 const { TextArea } = Input;
 
-const TemplateColumn: React.FC<TemplateColumnProps> = ({
-  templates,
+const DataColumn: React.FC<DataColumnProps> = ({
+  data,
   loading = false,
   error,
-  onTemplateAdd,
-  onTemplateDelete,
-  onTemplateEdit
+  onDataAdd,
+  onDataDelete,
+  onDataEdit
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
+  const [editingData, setEditingData] = useState<Data | null>(null);
   const [form] = Form.useForm();
 
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
       
-      if (editingTemplate) {
-        onTemplateEdit({ ...editingTemplate, ...values });
+      if (editingData) {
+        onDataEdit({ ...editingData, ...values });
       } else {
-        onTemplateAdd({
+        onDataAdd({
           ...values,
         });
       }
       setIsModalVisible(false);
       form.resetFields();
-      setEditingTemplate(null);
+      setEditingData(null);
     } catch (error) {
       console.error('Validation failed:', error);
     }
@@ -58,12 +58,12 @@ const TemplateColumn: React.FC<TemplateColumnProps> = ({
   const handleModalCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
-    setEditingTemplate(null);
+    setEditingData(null);
   };
 
-  const showEditModal = (template: Template) => {
-    setEditingTemplate(template);
-    form.setFieldsValue(template);
+  const showEditModal = (data: Data) => {
+    setEditingData(data);
+    form.setFieldsValue(data);
     setIsModalVisible(true);
   };
 
@@ -82,7 +82,7 @@ const TemplateColumn: React.FC<TemplateColumnProps> = ({
     return (
       <List
         loading={loading}
-        dataSource={templates}
+        dataSource={data}
         locale={{
           emptyText: (
             <Empty
@@ -99,9 +99,9 @@ const TemplateColumn: React.FC<TemplateColumnProps> = ({
             </Empty>
           )
         }}
-        renderItem={(template) => (
+        renderItem={(data) => (
           <List.Item
-            key={template.id}
+            key={data.id}
             actions={[
               <Dropdown
                 overlay={
@@ -109,7 +109,7 @@ const TemplateColumn: React.FC<TemplateColumnProps> = ({
                     <Menu.Item
                       key="edit"
                       icon={<EditOutlined />}
-                      onClick={() => showEditModal(template)}
+                      onClick={() => showEditModal(data)}
                     >
                       Редактировать
                     </Menu.Item>
@@ -121,7 +121,7 @@ const TemplateColumn: React.FC<TemplateColumnProps> = ({
                       <Popconfirm
                         title="Удалить шаблон?"
                         description="Это действие нельзя отменить"
-                        onConfirm={() => onTemplateDelete(template.id)}
+                        onConfirm={() => onDataDelete(data.id)}
                         okText="Да"
                         cancelText="Нет"
                       >
@@ -137,11 +137,11 @@ const TemplateColumn: React.FC<TemplateColumnProps> = ({
             ]}
           >
             <List.Item.Meta
-              title={template.name}
+              title={data.name}
               description={
-                template.description && (
+                data.description && (
                   <Paragraph type="secondary" ellipsis={{ rows: 2 }}>
-                    {template.description}
+                    {data.description}
                   </Paragraph>
                 )
               }
@@ -177,11 +177,11 @@ const TemplateColumn: React.FC<TemplateColumnProps> = ({
       </Card>
 
       <Modal
-        title={editingTemplate ? "Редактировать шаблон" : "Добавить шаблон"}
+        title={editingData ? "Редактировать шаблон" : "Добавить шаблон"}
         open={isModalVisible}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
-        okText={editingTemplate ? "Сохранить" : "Добавить"}
+        okText={editingData ? "Сохранить" : "Добавить"}
         cancelText="Отмена"
       >
         <Form
@@ -207,4 +207,4 @@ const TemplateColumn: React.FC<TemplateColumnProps> = ({
   );
 };
 
-export default TemplateColumn;
+export default DataColumn;
