@@ -87,14 +87,14 @@ const DataColumn: React.FC<DataColumnProps> = ({
           emptyText: (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="Нет шаблонов"
+              description="Нет данных"
             >
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => setIsModalVisible(true)}
               >
-                Добавить первый шаблон
+                Добавить первые данные
               </Button>
             </Empty>
           )
@@ -119,7 +119,7 @@ const DataColumn: React.FC<DataColumnProps> = ({
                       icon={<DeleteOutlined />}
                     >
                       <Popconfirm
-                        title="Удалить шаблон?"
+                        title="Удалить данные?"
                         description="Это действие нельзя отменить"
                         onConfirm={() => onDataDelete(data.id)}
                         okText="Да"
@@ -159,7 +159,7 @@ const DataColumn: React.FC<DataColumnProps> = ({
   return (
     <>
       <Card
-        title={<Title level={4}>Шаблоны</Title>}
+        title={<Title level={4}>Данные</Title>}
         extra={
           <Button
             type="primary"
@@ -168,7 +168,7 @@ const DataColumn: React.FC<DataColumnProps> = ({
             onClick={() => setIsModalVisible(true)}
             disabled={loading}
           >
-            Добавить шаблон
+            Добавить данные
           </Button>
         }
         style={{ width: '100%', height: '100%' }}
@@ -177,7 +177,7 @@ const DataColumn: React.FC<DataColumnProps> = ({
       </Card>
 
       <Modal
-        title={editingData ? "Редактировать шаблон" : "Добавить шаблон"}
+        title={editingData ? "Редактировать данные" : "Добавить данные"}
         open={isModalVisible}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
@@ -191,7 +191,7 @@ const DataColumn: React.FC<DataColumnProps> = ({
           <Form.Item
             name="name"
             label="Название"
-            rules={[{ required: true, message: 'Введите название шаблона' }]}
+            rules={[{ required: true, message: 'Введите название данных' }]}
           >
             <Input />
           </Form.Item>
