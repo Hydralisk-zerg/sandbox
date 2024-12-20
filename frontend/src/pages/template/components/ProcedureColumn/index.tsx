@@ -133,7 +133,7 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
         )}
         {linkedData.length > 0 && (
           <div>
-            <Typography.Text type="secondary">Шаблоны: </Typography.Text>
+            <Typography.Text type="secondary">Данные: </Typography.Text>
             {linkedData.map(data => (
               <Tag key={data.id}>{data.name}</Tag>
             ))}
@@ -293,15 +293,6 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
           </Form.Item>
 
           <Form.Item 
-            name="status" 
-            label="Статус"
-            initialValue="active"
-            rules={[{ required: true, message: 'Выберите статус' }]}
-          >
-
-          </Form.Item>
-
-          <Form.Item 
             name={['linkedItems', 'tasks']} 
             label="Связанные задачи"
           >
@@ -337,11 +328,11 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
 
           <Form.Item 
             name={['linkedItems', 'data']} 
-            label="Связанные шаблоны"
+            label="Связанные данные"
           >
             <Select
               mode="multiple"
-              placeholder="Выберите шаблоны"
+              placeholder="Выберите данные"
               optionFilterProp="children"
             >
               {data.map(data => (

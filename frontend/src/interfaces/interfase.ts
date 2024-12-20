@@ -82,7 +82,11 @@ export interface Task extends BaseItem{
 
 // Шаблоны
 
-export interface Data extends BaseItem{
+export interface Data extends BaseItem {
+  fieldName: string;
+  fieldType: 'text' | 'number' | 'date' | 'select' | 'employees'; // додано 'employees'
+  sourceTable?: string;
+  sourceColumn?: string;
   createdAt: string;
 }
 
