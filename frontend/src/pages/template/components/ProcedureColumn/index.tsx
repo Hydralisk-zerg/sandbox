@@ -44,12 +44,13 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingProcedure, setEditingProcedure] = useState<Procedure | null>(null);
+  const [viewModalVisible, setViewModalVisible] = useState(false);
+  const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null);
   const [form] = Form.useForm();
-
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      
+
       const procedureData: Omit<Procedure, 'id'> = {
         name: values.name,
         description: values.description,
@@ -102,17 +103,17 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
     if (!procedure.linkedItems) {
       return null;
     }
-  
-    const linkedTasks = tasks.filter(task => 
+
+    const linkedTasks = tasks.filter(task =>
       procedure.linkedItems?.tasks?.includes(task.id)
     );
-    const linkedEvents = events.filter(event => 
+    const linkedEvents = events.filter(event =>
       procedure.linkedItems?.events?.includes(event.id)
     );
-    const linkedData = data.filter(temp => 
+    const linkedData = data.filter(temp =>
       procedure.linkedItems?.data?.includes(temp.id)
     );
-  
+
     return (
       <Space direction="vertical" size={4}>
         {linkedTasks.length > 0 && (
@@ -154,7 +155,7 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
         />
       );
     }
-  
+
     return (
       <List<Procedure>
         loading={loading}
@@ -181,39 +182,39 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
             actions={[
               <Dropdown
                 key="actions"
-                overlay={
-                  <Menu>
-                    <Menu.Item
-                      key="filter"
-                      icon={<FilterOutlined />}
-                      onClick={() => onProcedureFilter(procedure)}
-                    >
-                      {isFiltered ? "Сбросить фильтр" : "Фильтровать связанные"}
-                    </Menu.Item>
-                    <Menu.Item
-                      key="edit"
-                      icon={<EditOutlined />}
-                      onClick={() => showEditModal(procedure)}
-                    >
-                      Редактировать
-                    </Menu.Item>
-                    <Menu.Item
-                      key="delete"
-                      danger
-                      icon={<DeleteOutlined />}
-                    >
-                      <Popconfirm
-                        title="Удалить процедуру?"
-                        description="Это действие нельзя отменить"
-                        onConfirm={() => onProcedureDelete(procedure.id)}
-                        okText="Да"
-                        cancelText="Нет"
-                      >
-                        Удалить
-                      </Popconfirm>
-                    </Menu.Item>
-                  </Menu>
-                }
+                menu={{
+                  items: [
+                    {
+                      key: "filter",
+                      icon: <FilterOutlined />,
+                      onClick: () => onProcedureFilter(procedure),
+                      label: isFiltered ? "Сбросить фильтр" : "Фильтровать связанные"
+                    },
+
+                    {
+                      key: "edit",
+                      icon: <EditOutlined />,
+                      onClick: () => showEditModal(procedure),
+                      label: ' Редактировать'
+                    },
+                    {
+                      key: "delete",
+                      icon: <DeleteOutlined />,
+                      danger: true,
+                      label: (
+                        <Popconfirm
+                          title="Видалити процедуру?"
+                          description="Цю дію неможливо скасувати"
+                          onConfirm={() => onProcedureDelete(procedure.id)}
+                          okText="Так"
+                          cancelText="Ні"
+                        >
+                          Видалити
+                        </Popconfirm>
+                      )
+                    }
+                  ]
+                }}
                 trigger={['click']}
               >
                 <Button type="link" icon={<MoreOutlined />} />
@@ -250,11 +251,11 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
 
   return (
     <>
-      <Card 
+      <Card
         title={<Title level={4}>Процедуры</Title>}
         extra={
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<PlusOutlined />}
             onClick={() => setIsModalVisible(true)}
             disabled={loading}
@@ -275,8 +276,13 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
         onCancel={handleModalCancel}
         okText={editingProcedure ? "Сохранить" : "Добавить"}
         cancelText="Отмена"
+        destroyOnClose
       >
-        <Form form={form} layout="vertical">
+        <Form 
+          form={form} 
+          layout="vertical"
+          preserve={false}
+        >
           <Form.Item
             name="name"
             label="Название"
@@ -285,15 +291,15 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
             <Input />
           </Form.Item>
 
-          <Form.Item 
-            name="description" 
+          <Form.Item
+            name="description"
             label="Описание"
           >
             <TextArea rows={4} />
           </Form.Item>
 
-          <Form.Item 
-            name={['linkedItems', 'tasks']} 
+          <Form.Item
+            name={['linkedItems', 'tasks']}
             label="Связанные задачи"
           >
             <Select
@@ -309,8 +315,8 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
             </Select>
           </Form.Item>
 
-          <Form.Item 
-            name={['linkedItems', 'events']} 
+          <Form.Item
+            name={['linkedItems', 'events']}
             label="Связанные события"
           >
             <Select
@@ -326,8 +332,8 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
             </Select>
           </Form.Item>
 
-          <Form.Item 
-            name={['linkedItems', 'data']} 
+          <Form.Item
+            name={['linkedItems', 'data']}
             label="Связанные данные"
           >
             <Select

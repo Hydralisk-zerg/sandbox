@@ -21,6 +21,7 @@ import {
   MoreOutlined,
   ContactsOutlined
 } from '@ant-design/icons';
+import { useForm } from 'antd/lib/form/Form';
 import { api } from '../../../../services/apiClient';
 import { Data, DataColumnProps, Employee } from '../../../../interfaces/interfase';
 import Paragraph from 'antd/es/typography/Paragraph';
@@ -95,6 +96,7 @@ const DataColumn: React.FC<DataColumnProps> = ({
     } else if (value === 'employees') {
       loadEmployees();
     }
+    form.setFieldsValue({ fieldType: value });
   };
 
   const handleModalOk = async () => {
@@ -163,32 +165,31 @@ const DataColumn: React.FC<DataColumnProps> = ({
             key={data.id}
             actions={[
               <Dropdown
-                overlay={
-                  <Menu>
-                    <Menu.Item
-                      key="edit"
-                      icon={<EditOutlined />}
-                      onClick={() => showEditModal(data)}
-                    >
-                      Редактировать
-                    </Menu.Item>
-                    <Menu.Item
-                      key="delete"
-                      danger
-                      icon={<DeleteOutlined />}
-                    >
-                      <Popconfirm
-                        title="Удалить данные?"
-                        description="Это действие нельзя отменить"
-                        onConfirm={() => onDataDelete(data.id)}
-                        okText="Да"
-                        cancelText="Нет"
-                      >
-                        Удалить
-                      </Popconfirm>
-                    </Menu.Item>
-                  </Menu>
-                }
+                menu={{
+                  items: [
+                    {
+                      key: "edit",
+                      label: 'Редактировать',
+                      icon: <EditOutlined />,
+                      onClick: () => showEditModal(data)
+                    },
+                    {
+                      key: "delete",
+                      danger: true,
+                      icon: <DeleteOutlined />,
+                      label:
+                        <Popconfirm
+                          title="Удалить данные?"
+                          description="Это действие нельзя отменить"
+                          onConfirm={() => onDataDelete(data.id)}
+                          okText="Да"
+                          cancelText="Нет"
+                        >
+                          Удалить
+                        </Popconfirm>
+                    }
+                  ]
+                }}
                 trigger={['click']}
               >
                 <Button type="link" icon={<MoreOutlined />} />
@@ -223,6 +224,11 @@ const DataColumn: React.FC<DataColumnProps> = ({
     loadTables();
   }, []);
 
+  useEffect(() => {
+    if (editingData) {
+      setSelectedFieldType(editingData.fieldType);
+    }
+  }, [editingData]);
 
   return (
     <>
@@ -254,6 +260,9 @@ const DataColumn: React.FC<DataColumnProps> = ({
         <Form
           form={form}
           layout="vertical"
+          initialValues={{
+            fieldType: selectedFieldType
+          }}
         >
           <Form.Item
             name="name"
@@ -293,7 +302,7 @@ const DataColumn: React.FC<DataColumnProps> = ({
             </Select>
           </Form.Item>
 
-          {(form.getFieldValue('fieldType') === 'select' || selectedFieldType === 'select') && (
+          { selectedFieldType === 'select'&& (
             <>
               <Form.Item
                 name="sourceTable"
@@ -331,7 +340,7 @@ const DataColumn: React.FC<DataColumnProps> = ({
             </>
           )}
 
-          {(form.getFieldValue('fieldType') === 'employees' || selectedFieldType === 'employees') && (
+          {selectedFieldType === 'employees' && (
             <Form.Item
               name="employeeField"
               label="Поле співробітника"
