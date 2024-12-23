@@ -1,24 +1,24 @@
 // components/TasksColumn/index.tsx
 import React, { useState } from 'react';
-import { 
-  Card, 
-  List, 
-  Button, 
-  Typography, 
-  Popconfirm, 
-  Empty, 
+import {
+  Card,
+  List,
+  Button,
+  Typography,
+  Popconfirm,
+  Empty,
   Alert,
   Modal,
   Form,
-  Input, 
+  Input,
   Dropdown,
   Menu
 } from 'antd';
-import { 
-  PlusOutlined, 
-  DeleteOutlined, 
+import {
+  PlusOutlined,
+  DeleteOutlined,
   EditOutlined,
-  CheckOutlined, 
+  CheckOutlined,
   MoreOutlined
 } from '@ant-design/icons';
 import { Task, TasksColumnProps } from '../../../../interfaces/interfase';
@@ -87,8 +87,8 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               description="Нет задач"
             >
-              <Button 
-                type="primary" 
+              <Button
+                type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => setIsModalVisible(true)}
               >
@@ -99,50 +99,50 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
         }}
         renderItem={(task) => (
           <List.Item
-          key={task.id}
-          actions={[
-            <Dropdown
-              overlay={
-                <Menu>
-                  <Menu.Item 
-                    key="edit" 
-                    icon={<EditOutlined />}
-                    onClick={() => showEditModal(task)}
-                  >
-                    Редактировать
-                  </Menu.Item>
-                  <Menu.Item 
-                    key="delete" 
-                    danger
-                    icon={<DeleteOutlined />}
-                  >
-                    <Popconfirm
-                      title="Удалить задачу?"
-                      description="Это действие нельзя отменить"
-                      onConfirm={() => onTaskDelete(task.id)}
-                      okText="Да"
-                      cancelText="Нет"
-                    >
-                      Удалить
-                    </Popconfirm>
-                  </Menu.Item>
-                </Menu>
-              }
-              trigger={['click']}
-            >
-              <Button type="link" icon={<MoreOutlined />} />
-            </Dropdown>
-          ]}
-        >
-          <List.Item.Meta
-            title={task.name}
-            description={task.description}
-          />
-        </List.Item>
+            key={task.id}
+            actions={[
+              <Dropdown
+                menu={{
+                  items: [
+                    {
+                      key: "edit",
+                      label: 'Редактировать',
+                      icon: <EditOutlined />,
+                      onClick: () => showEditModal(task)
+                    },
+                    {
+                      key: "delete",
+                      danger: true,
+                      icon: <DeleteOutlined />,
+                      label:
+                        <Popconfirm
+                          title="Удалить данные?"
+                          description="Это действие нельзя отменить"
+                          onConfirm={() => onTaskDelete(task.id)}
+                          okText="Да"
+                          cancelText="Нет"
+                        >
+                          Удалить
+                        </Popconfirm>
+                    }
+                  ]
+                }}
+
+                trigger={['click']}
+              >
+                <Button type="link" icon={<MoreOutlined />} />
+              </Dropdown>
+            ]}
+          >
+            <List.Item.Meta
+              title={task.name}
+              description={task.description}
+            />
+          </List.Item>
         )}
-        style={{ 
-          height: 'calc(100vh - 200px)', 
-          overflowY: 'auto' 
+        style={{
+          height: 'calc(100vh - 200px)',
+          overflowY: 'auto'
         }}
       />
     );
@@ -150,11 +150,11 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
 
   return (
     <>
-      <Card 
+      <Card
         title={<Title level={4}>Задачи</Title>}
         extra={
-          <Button 
-            type="primary" 
+          <Button
+            type="primary"
             icon={<PlusOutlined />}
             onClick={() => setIsModalVisible(true)}
             disabled={loading}

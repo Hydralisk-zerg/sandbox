@@ -40,7 +40,7 @@ const EventsColumn: React.FC<EventsColumnProps> = ({
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-      
+
       if (editingEvent) {
         onEventEdit({ ...editingEvent, ...values });
       } else {
@@ -103,32 +103,32 @@ const EventsColumn: React.FC<EventsColumnProps> = ({
             key={event.id}
             actions={[
               <Dropdown
-                overlay={
-                  <Menu>
-                    <Menu.Item
-                      key="edit"
-                      icon={<EditOutlined />}
-                      onClick={() => showEditModal(event)}
-                    >
-                      Редактировать
-                    </Menu.Item>
-                    <Menu.Item
-                      key="delete"
-                      danger
-                      icon={<DeleteOutlined />}
-                    >
-                      <Popconfirm
-                        title="Удалить событие?"
-                        description="Это действие нельзя отменить"
-                        onConfirm={() => onEventDelete(event.id)}
-                        okText="Да"
-                        cancelText="Нет"
-                      >
-                        Удалить
-                      </Popconfirm>
-                    </Menu.Item>
-                  </Menu>
-                }
+                menu={{
+                  items: [
+                    {
+                      key: "edit",
+                      label: 'Редактировать',
+                      icon: <EditOutlined />,
+                      onClick: () => showEditModal(event)
+                    },
+                    {
+                      key: "delete",
+                      danger: true,
+                      icon: <DeleteOutlined />,
+                      label:
+                        <Popconfirm
+                          title="Удалить данные?"
+                          description="Это действие нельзя отменить"
+                          onConfirm={() => onEventDelete(event.id)}
+                          okText="Да"
+                          cancelText="Нет"
+                        >
+                          Удалить
+                        </Popconfirm>
+                    }
+                  ]
+                }}
+
                 trigger={['click']}
               >
                 <Button type="link" icon={<MoreOutlined />} />

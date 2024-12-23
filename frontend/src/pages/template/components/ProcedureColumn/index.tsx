@@ -11,7 +11,6 @@ import {
   Form,
   Input,
   Dropdown,
-  Menu,
   Select,
   Space,
   Tag
@@ -21,10 +20,11 @@ import {
   DeleteOutlined,
   EditOutlined,
   MoreOutlined,
-  FilterOutlined
+  FilterOutlined,
+  EyeOutlined
 } from '@ant-design/icons';
 import { Procedure, ProceduresColumnProps } from '../../../../interfaces/interfase';
-import { v4 as uuidv4 } from 'uuid';
+import ProcedureDetailsModal from './ProcedureDetailsModal';
 
 const { Title } = Typography;
 const { TextArea } = Input;
@@ -44,13 +44,14 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingProcedure, setEditingProcedure] = useState<Procedure | null>(null);
-  const [viewModalVisible, setViewModalVisible] = useState(false);
+  const [isCardModalVisible, setIsCardModalVisible] = useState(false);
   const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null);
+
   const [form] = Form.useForm();
+
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
-
       const procedureData: Omit<Procedure, 'id'> = {
         name: values.name,
         description: values.description,
@@ -100,9 +101,7 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
   };
 
   const renderLinkedItems = (procedure: Procedure) => {
-    if (!procedure.linkedItems) {
-      return null;
-    }
+    if (!procedure.linkedItems) return null;
 
     const linkedTasks = tasks.filter(task =>
       procedure.linkedItems?.tasks?.includes(task.id)
@@ -185,17 +184,25 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
                 menu={{
                   items: [
                     {
+                      key: "show",
+                      icon: <EyeOutlined />,
+                      onClick: () => {
+                        setSelectedProcedure(procedure);
+                        setIsCardModalVisible(true);
+                      },
+                      label: 'Показати картку'
+                    },
+                    {
                       key: "filter",
                       icon: <FilterOutlined />,
                       onClick: () => onProcedureFilter(procedure),
                       label: isFiltered ? "Сбросить фильтр" : "Фильтровать связанные"
                     },
-
                     {
                       key: "edit",
                       icon: <EditOutlined />,
                       onClick: () => showEditModal(procedure),
-                      label: ' Редактировать'
+                      label: 'Редактировать'
                     },
                     {
                       key: "delete",
@@ -217,7 +224,7 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
                 }}
                 trigger={['click']}
               >
-                <Button type="link" icon={<MoreOutlined />} />
+                <Button type="text" icon={<MoreOutlined />} />
               </Dropdown>
             ]}
           >
@@ -278,8 +285,8 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
         cancelText="Отмена"
         destroyOnClose
       >
-        <Form 
-          form={form} 
+        <Form
+          form={form}
           layout="vertical"
           preserve={false}
         >
@@ -350,6 +357,14 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
           </Form.Item>
         </Form>
       </Modal>
+
+      <ProcedureDetailsModal
+        tasks={tasks}
+        events={events}
+        data={data}
+        isVisible={isCardModalVisible}
+        onClose={() => setIsCardModalVisible(false)}
+      />
     </>
   );
 };

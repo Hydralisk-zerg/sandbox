@@ -136,16 +136,41 @@ export interface DataColumnProps {
   onDataEdit: (data: Data) => void;
 }
 
+// export interface ProceduresColumnProps {
+//   procedures: Procedure[];
+//   tasks: BaseItem[];
+//   events: BaseItem[];
+//   data: BaseItem[];
+//   loading?: boolean;
+//   error?: string;
+//   isFiltered?: boolean;
+//   onProcedureAdd: (procedure: Omit<Procedure, 'id'>) => void;
+//   onProcedureEdit: (procedure: Procedure) => void;
+//   onProcedureDelete: (id: string) => void;
+//   onProcedureFilter: (procedure: Procedure) => void;
+// }
+interface FormField {
+  id: string;
+  name: string;
+  fieldName: string;
+  description: string;
+  fieldType: string;
+  sourceTable?: string;
+  sourceColumn?: string;
+  createdAt?: string;
+  employeeField?: number;
+}
+
 export interface ProceduresColumnProps {
   procedures: Procedure[];
-  tasks: BaseItem[];
-  events: BaseItem[];
-  data: BaseItem[];
+  tasks: Task[];
+  events: Event[];
+  data: FormField[];
   loading?: boolean;
   error?: string;
   isFiltered?: boolean;
   onProcedureAdd: (procedure: Omit<Procedure, 'id'>) => void;
-  onProcedureEdit: (procedure: Procedure) => void;
   onProcedureDelete: (id: string) => void;
+  onProcedureEdit: (procedure: Procedure) => void;
   onProcedureFilter: (procedure: Procedure) => void;
 }
