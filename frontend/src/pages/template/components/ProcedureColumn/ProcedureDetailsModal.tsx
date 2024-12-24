@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Typography, Space, Empty } from 'antd';
+import { Modal, Typography, Space, Empty, Form, Input, Select } from 'antd';
 import { taskStorage, eventStorage, dataStorage } from '../../../../services/templateStorage';
 
 const { Title } = Typography;
@@ -8,7 +8,6 @@ interface Procedure {
   id: string;
   name: string;
   description: string;
-  status: string;
   linkedItems: {
     tasks: string[];
     events: string[];
@@ -32,8 +31,9 @@ interface Data {
   id: string;
   name: string;
   description: string;
+  fieldType: string;
+  fieldName: string;
 }
-
 interface ModalProps {
   procedureId: string;
   isVisible: boolean;
@@ -45,6 +45,7 @@ const ProcedureDetailsModal: React.FC<ModalProps> = ({
   isVisible,
   onClose
 }) => {
+  const [form] = Form.useForm();
   const [procedure, setProcedure] = useState<Procedure | null>(null);
   const [linkedTasks, setLinkedTasks] = useState<Task[]>([]);
   const [linkedEvents, setLinkedEvents] = useState<Event[]>([]);
@@ -52,17 +53,16 @@ const ProcedureDetailsModal: React.FC<ModalProps> = ({
 
   useEffect(() => {
     if (isVisible && procedureId) {
-      // Отримуємо процедуру
       const procedures = JSON.parse(localStorage.getItem('procedures') || '[]');
       const currentProcedure = procedures.find((p: Procedure) => p.id === procedureId);
-      
+
       if (currentProcedure) {
         setProcedure(currentProcedure);
 
         // Отримуємо пов'язані задачі
         if (currentProcedure.linkedItems.tasks.length > 0) {
           const allTasks = taskStorage.getTasks() || [];
-          const filteredTasks = allTasks.filter((task: Task) => 
+          const filteredTasks = allTasks.filter((task: Task) =>
             currentProcedure.linkedItems.tasks.includes(task.id)
           );
           setLinkedTasks(filteredTasks);
@@ -71,7 +71,7 @@ const ProcedureDetailsModal: React.FC<ModalProps> = ({
         // Отримуємо пов'язані події
         if (currentProcedure.linkedItems.events.length > 0) {
           const allEvents = eventStorage.getEvents() || [];
-          const filteredEvents = allEvents.filter((event: Event) => 
+          const filteredEvents = allEvents.filter((event: Event) =>
             currentProcedure.linkedItems.events.includes(event.id)
           );
           setLinkedEvents(filteredEvents);
@@ -80,7 +80,7 @@ const ProcedureDetailsModal: React.FC<ModalProps> = ({
         // Отримуємо пов'язані дані
         if (currentProcedure.linkedItems.data.length > 0) {
           const allData = dataStorage.getData() || [];
-          const filteredData = allData.filter((data: Data) => 
+          const filteredData = allData.filter((data: Data) =>
             currentProcedure.linkedItems.data.includes(data.id)
           );
           setLinkedData(filteredData);
@@ -88,6 +88,45 @@ const ProcedureDetailsModal: React.FC<ModalProps> = ({
       }
     }
   }, [procedureId, isVisible]);
+
+  const renderDataField = (data: Data) => {
+    const commonProps = {
+      placeholder: data.description
+    };
+
+    if (data.fieldType === 'employees' || data.fieldType === 'select') {
+      return (
+        <Form.Item
+          key={data.id}
+          name={data.id}
+          label={data.fieldName}
+        >
+          <Select
+            {...commonProps}
+            mode="multiple"
+            options={[
+              // Тут можна додати опції для select
+              { value: 'employee1', label: 'Співробітник 1' },
+              { value: 'employee2', label: 'Співробітник 2' },
+            ]}
+          />
+        </Form.Item>
+      );
+    }
+
+    return (
+      <Form.Item
+        key={data.id}
+        name={data.id}
+        label={data.fieldName}
+      >
+        <Input
+          {...commonProps}
+          type={data.fieldType}
+        />
+      </Form.Item>
+    );
+  };
 
   return (
     <Modal
@@ -104,7 +143,6 @@ const ProcedureDetailsModal: React.FC<ModalProps> = ({
           <div>
             <Title level={5}>Опис процедури</Title>
             <p>{procedure.description}</p>
-            <p><strong>Статус:</strong> {procedure.status}</p>
           </div>
 
           {/* Відображення пов'язаних задач */}
@@ -133,16 +171,13 @@ const ProcedureDetailsModal: React.FC<ModalProps> = ({
             </div>
           )}
 
-          {/* Відображення пов'язаних даних */}
+          {/* Відображення пов'язаних даних як форми */}
           {linkedData.length > 0 && (
             <div>
               <Title level={5}>Дані</Title>
-              {linkedData.map(data => (
-                <div key={data.id} style={{ marginBottom: 16 }}>
-                  <div><strong>Назва:</strong> {data.name}</div>
-                  <div><strong>Опис:</strong> {data.description}</div>
-                </div>
-              ))}
+              <Form form={form} layout="vertical">
+                {linkedData.map(data => renderDataField(data))}
+              </Form>
             </div>
           )}
 

@@ -1,33 +1,87 @@
+// Компоненти та типи
 import React, { useState } from 'react';
-import {
-  Card,
-  List,
-  Button,
-  Typography,
-  Popconfirm,
-  Empty,
-  Alert,
-  Modal,
-  Form,
-  Input,
-  Dropdown,
-  Select,
-  Space,
-  Tag
-} from 'antd';
-import {
-  PlusOutlined,
-  DeleteOutlined,
-  EditOutlined,
-  MoreOutlined,
-  FilterOutlined,
-  EyeOutlined
-} from '@ant-design/icons';
+import { Card, List, Button, Typography, Popconfirm, Empty, Alert, Modal, Form, Input, Dropdown, Select, Space, Tag } from 'antd';
+import { PlusOutlined, DeleteOutlined, EditOutlined, MoreOutlined, FilterOutlined, EyeOutlined } from '@ant-design/icons';
 import { Procedure, ProceduresColumnProps } from '../../../../interfaces/interfase';
 import ProcedureDetailsModal from './ProcedureDetailsModal';
 
 const { Title } = Typography;
 const { TextArea } = Input;
+
+const ProcedureForm: React.FC<{ form: any; tasks: any[]; events: any[]; data: any[] }> = ({
+  form,
+  tasks,
+  events,
+  data
+}) => (
+  <Form form={form} layout="vertical" preserve={false}>
+     <Form.Item
+            name="name"
+            label="Название"
+            rules={[{ required: true, message: 'Введите название процедуры' }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            name="description"
+            label="Описание"
+          >
+            <TextArea rows={4} />
+          </Form.Item>
+
+          <Form.Item
+            name={['linkedItems', 'tasks']}
+            label="Связанные задачи"
+          >
+            <Select
+              mode="multiple"
+              placeholder="Выберите задачи"
+              optionFilterProp="children"
+            >
+              {tasks.map(task => (
+                <Select.Option key={task.id} value={task.id}>
+                  {task.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name={['linkedItems', 'events']}
+            label="Связанные события"
+          >
+            <Select
+              mode="multiple"
+              placeholder="Выберите события"
+              optionFilterProp="children"
+            >
+              {events.map(event => (
+                <Select.Option key={event.id} value={event.id}>
+                  {event.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name={['linkedItems', 'data']}
+            label="Связанные данные"
+          >
+            <Select
+              mode="multiple"
+              placeholder="Выберите данные"
+              optionFilterProp="children"
+            >
+              {data.map(data => (
+                <Select.Option key={data.id} value={data.id}>
+                  {data.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+  </Form>
+);
 
 const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
   procedures,
@@ -43,11 +97,11 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
   onProcedureFilter,
   onUpdate
 }) => {
+  // Стани
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingProcedure, setEditingProcedure] = useState<Procedure | null>(null);
   const [isCardModalVisible, setIsCardModalVisible] = useState(false);
   const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null);
-
   const [form] = Form.useForm();
 
   const handleModalOk = async () => {
@@ -85,12 +139,6 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
     } catch (error) {
       console.error('Validation failed:', error);
     }
-  };
-  
-  const handleModalCancel = () => {
-    setIsModalVisible(false);
-    form.resetFields();
-    setEditingProcedure(null);
   };
 
   const showEditModal = (procedure: Procedure) => {
@@ -290,82 +338,16 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
         title={editingProcedure ? "Редактировать процедуру" : "Добавить процедуру"}
         open={isModalVisible}
         onOk={handleModalOk}
-        onCancel={handleModalCancel}
+        onCancel={() => {
+          setIsModalVisible(false);
+          form.resetFields();
+          setEditingProcedure(null);
+        }}
         okText={editingProcedure ? "Сохранить" : "Добавить"}
         cancelText="Отмена"
         destroyOnClose
       >
-        <Form
-          form={form}
-          layout="vertical"
-          preserve={false}
-        >
-          <Form.Item
-            name="name"
-            label="Название"
-            rules={[{ required: true, message: 'Введите название процедуры' }]}
-          >
-            <Input />
-          </Form.Item>
-
-          <Form.Item
-            name="description"
-            label="Описание"
-          >
-            <TextArea rows={4} />
-          </Form.Item>
-
-          <Form.Item
-            name={['linkedItems', 'tasks']}
-            label="Связанные задачи"
-          >
-            <Select
-              mode="multiple"
-              placeholder="Выберите задачи"
-              optionFilterProp="children"
-            >
-              {tasks.map(task => (
-                <Select.Option key={task.id} value={task.id}>
-                  {task.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name={['linkedItems', 'events']}
-            label="Связанные события"
-          >
-            <Select
-              mode="multiple"
-              placeholder="Выберите события"
-              optionFilterProp="children"
-            >
-              {events.map(event => (
-                <Select.Option key={event.id} value={event.id}>
-                  {event.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            name={['linkedItems', 'data']}
-            label="Связанные данные"
-          >
-            <Select
-              mode="multiple"
-              placeholder="Выберите данные"
-              optionFilterProp="children"
-            >
-              {data.map(data => (
-                <Select.Option key={data.id} value={data.id}>
-                  {data.name}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-        </Form>
+        <ProcedureForm form={form} tasks={tasks} events={events} data={data} />
       </Modal>
       <ProcedureDetailsModal
         procedureId={selectedProcedure?.id || ''} // Передаємо ID обраної процедури
