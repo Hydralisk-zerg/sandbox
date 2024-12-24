@@ -1,143 +1,156 @@
-import React from 'react';
-import { Modal, Typography, Form, Input, Select, DatePicker, InputNumber, Space } from 'antd';
-// import { Task, Event } from '../../../../interfaces/interfase';
+import React, { useEffect, useState } from 'react';
+import { Modal, Typography, Space, Empty } from 'antd';
+import { taskStorage, eventStorage, dataStorage } from '../../../../services/templateStorage';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
-
+interface Procedure {
+  id: string;
+  name: string;
+  description: string;
+  status: string;
+  linkedItems: {
+    tasks: string[];
+    events: string[];
+    data: string[];
+  };
+}
 
 interface Task {
-    id: string;
-    name: string;
-    description: string;
-    dueDate: string;
-    status: string;
-    priority: string;
-  }
-  
-  interface Event {
-    id: string;
-    name: string;
-    description: string;
-    date: string;
-    time: string;
-    status: string;
-    priority: string;
-  }
-  
-  interface FormField {
-    id: string;
-    name: string;
-    fieldName: string;
-    description: string;
-    fieldType: string;
-    sourceTable?: string;
-    sourceColumn?: string;
-    createdAt?: string;
-    employeeField?: number;
-  }
-  
-  interface ModalProps {
-    tasks: Task[];
-    events: Event[];
-    data: FormField[];
-    isVisible: boolean;
-    onClose: () => void;
-  }
-  
+  id: string;
+  name: string;
+  description: string;
+}
+
+interface Event {
+  id: string;
+  name: string;
+  description: string;
+}
+
+interface Data {
+  id: string;
+  name: string;
+  description: string;
+}
+
+interface ModalProps {
+  procedureId: string;
+  isVisible: boolean;
+  onClose: () => void;
+}
+
 const ProcedureDetailsModal: React.FC<ModalProps> = ({
-  tasks,
-  events,
-  data,
+  procedureId,
   isVisible,
   onClose
 }) => {
-  const [form] = Form.useForm();
+  const [procedure, setProcedure] = useState<Procedure | null>(null);
+  const [linkedTasks, setLinkedTasks] = useState<Task[]>([]);
+  const [linkedEvents, setLinkedEvents] = useState<Event[]>([]);
+  const [linkedData, setLinkedData] = useState<Data[]>([]);
 
-  const renderFormField = (fieldType: string, placeholder: string) => {
-    switch (fieldType.toLowerCase()) {
-      case 'text':
-        return <Input placeholder={placeholder} />;
-      case 'number':
-        return <InputNumber style={{ width: '100%' }} placeholder={placeholder} />;
-      case 'select':
-        return (
-          <Select
-            style={{ width: '100%' }}
-            placeholder={placeholder}
-            options={[]}
-          />
-        );
-      case 'date':
-        return <DatePicker style={{ width: '100%' }} placeholder={placeholder} />;
-      case 'employees':
-        return (
-          <Select
-            mode="multiple"
-            style={{ width: '100%' }}
-            placeholder={placeholder}
-            options={[]}
-          />
-        );
-      default:
-        return <Input placeholder={placeholder} />;
+  useEffect(() => {
+    if (isVisible && procedureId) {
+      // Отримуємо процедуру
+      const procedures = JSON.parse(localStorage.getItem('procedures') || '[]');
+      const currentProcedure = procedures.find((p: Procedure) => p.id === procedureId);
+      
+      if (currentProcedure) {
+        setProcedure(currentProcedure);
+
+        // Отримуємо пов'язані задачі
+        if (currentProcedure.linkedItems.tasks.length > 0) {
+          const allTasks = taskStorage.getTasks() || [];
+          const filteredTasks = allTasks.filter((task: Task) => 
+            currentProcedure.linkedItems.tasks.includes(task.id)
+          );
+          setLinkedTasks(filteredTasks);
+        }
+
+        // Отримуємо пов'язані події
+        if (currentProcedure.linkedItems.events.length > 0) {
+          const allEvents = eventStorage.getEvents() || [];
+          const filteredEvents = allEvents.filter((event: Event) => 
+            currentProcedure.linkedItems.events.includes(event.id)
+          );
+          setLinkedEvents(filteredEvents);
+        }
+
+        // Отримуємо пов'язані дані
+        if (currentProcedure.linkedItems.data.length > 0) {
+          const allData = dataStorage.getData() || [];
+          const filteredData = allData.filter((data: Data) => 
+            currentProcedure.linkedItems.data.includes(data.id)
+          );
+          setLinkedData(filteredData);
+        }
+      }
     }
-  };
-
-  const handleSubmit = (values: any) => {
-    console.log('Form values:', values);
-  };
+  }, [procedureId, isVisible]);
 
   return (
     <Modal
-      title={<Title level={4}>Деталі процедури</Title>}
+      title={<Title level={4}>{procedure?.name || 'Деталі процедури'}</Title>}
       open={isVisible}
       onCancel={onClose}
-      onOk={() => form.submit()}
+      onOk={onClose}
       width={800}
     >
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        {/* Секція для Tasks */}
-        {tasks.map(task => (
-          <div key={task.id}>
-            <Form.Item label="Назва задачі">
-              <Input defaultValue={task.name} />
-            </Form.Item>
-            <Form.Item label="Опис задачі">
-              <Input.TextArea defaultValue={task.description} />
-            </Form.Item>
+      {!procedure ? (
+        <Empty description="Процедуру не знайдено" />
+      ) : (
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <div>
+            <Title level={5}>Опис процедури</Title>
+            <p>{procedure.description}</p>
+            <p><strong>Статус:</strong> {procedure.status}</p>
           </div>
-        ))}
 
-        {/* Секція для Events */}
-        {events.map(event => (
-          <div key={event.id}>
-            <Form.Item label="Назва події">
-              <Input defaultValue={event.name} />
-            </Form.Item>
-            <Form.Item label="Опис події">
-              <Input.TextArea defaultValue={event.description} />
-            </Form.Item>
-          </div>
-        ))}
+          {/* Відображення пов'язаних задач */}
+          {linkedTasks.length > 0 && (
+            <div>
+              <Title level={5}>Задачі</Title>
+              {linkedTasks.map(task => (
+                <div key={task.id} style={{ marginBottom: 16 }}>
+                  <div><strong>Назва:</strong> {task.name}</div>
+                  <div><strong>Опис:</strong> {task.description}</div>
+                </div>
+              ))}
+            </div>
+          )}
 
-        {/* Динамічна форма на основі data */}
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-        >
-          {data.map(field => (
-            <Form.Item
-              key={field.id}
-              label={field.fieldName}
-              name={field.fieldName}
-            >
-              {renderFormField(field.fieldType, field.description)}
-            </Form.Item>
-          ))}
-        </Form>
-      </Space>
+          {/* Відображення пов'язаних подій */}
+          {linkedEvents.length > 0 && (
+            <div>
+              <Title level={5}>Події</Title>
+              {linkedEvents.map(event => (
+                <div key={event.id} style={{ marginBottom: 16 }}>
+                  <div><strong>Назва:</strong> {event.name}</div>
+                  <div><strong>Опис:</strong> {event.description}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Відображення пов'язаних даних */}
+          {linkedData.length > 0 && (
+            <div>
+              <Title level={5}>Дані</Title>
+              {linkedData.map(data => (
+                <div key={data.id} style={{ marginBottom: 16 }}>
+                  <div><strong>Назва:</strong> {data.name}</div>
+                  <div><strong>Опис:</strong> {data.description}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {linkedTasks.length === 0 && linkedEvents.length === 0 && linkedData.length === 0 && (
+            <Empty description="Немає пов'язаних елементів" />
+          )}
+        </Space>
+      )}
     </Modal>
   );
 };

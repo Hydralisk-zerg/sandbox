@@ -40,7 +40,8 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
   onProcedureAdd,
   onProcedureDelete,
   onProcedureEdit,
-  onProcedureFilter
+  onProcedureFilter,
+  onUpdate
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingProcedure, setEditingProcedure] = useState<Procedure | null>(null);
@@ -62,23 +63,30 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
         },
         status: values.status || 'active'
       };
-
+  
       if (editingProcedure) {
-        onProcedureEdit({
+        await onProcedureEdit({
           ...procedureData,
           id: editingProcedure.id
         });
       } else {
-        onProcedureAdd(procedureData);
+        await onProcedureAdd(procedureData);
       }
+  
       setIsModalVisible(false);
       form.resetFields();
       setEditingProcedure(null);
+  
+      // Викликаємо callback для оновлення даних
+      if (typeof onUpdate === 'function') {
+        onUpdate();
+      }
+  
     } catch (error) {
       console.error('Validation failed:', error);
     }
   };
-
+  
   const handleModalCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
@@ -87,17 +95,19 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
 
   const showEditModal = (procedure: Procedure) => {
     setEditingProcedure(procedure);
-    form.setFieldsValue({
-      name: procedure.name,
-      description: procedure.description,
-      status: procedure.status,
-      linkedItems: {
-        tasks: procedure.linkedItems?.tasks || [],
-        events: procedure.linkedItems?.events || [],
-        data: procedure.linkedItems?.data || []
-      }
-    });
     setIsModalVisible(true);
+    // Встановлюємо значення для всіх полів форми
+    setTimeout(() => {
+      form.setFieldsValue({
+        name: procedure.name,
+        description: procedure.description,
+        linkedItems: {
+          tasks: procedure.linkedItems?.tasks || [],
+          events: procedure.linkedItems?.events || [],
+          data: procedure.linkedItems?.data || []
+        }
+      });
+    }, 100);
   };
 
   const renderLinkedItems = (procedure: Procedure) => {
@@ -357,14 +367,12 @@ const ProcedureColumn: React.FC<ProceduresColumnProps> = ({
           </Form.Item>
         </Form>
       </Modal>
-
       <ProcedureDetailsModal
-        tasks={tasks}
-        events={events}
-        data={data}
-        isVisible={isCardModalVisible}
-        onClose={() => setIsCardModalVisible(false)}
+        procedureId={selectedProcedure?.id || ''} // Передаємо ID обраної процедури
+        isVisible={isCardModalVisible} // Використовуємо правильний стейт
+        onClose={() => setIsCardModalVisible(false)} // Використовуємо правильний метод закриття
       />
+
     </>
   );
 };

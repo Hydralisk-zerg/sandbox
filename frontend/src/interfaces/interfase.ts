@@ -173,4 +173,5 @@ export interface ProceduresColumnProps {
   onProcedureDelete: (id: string) => void;
   onProcedureEdit: (procedure: Procedure) => void;
   onProcedureFilter: (procedure: Procedure) => void;
+  onUpdate?: () => void;
 }

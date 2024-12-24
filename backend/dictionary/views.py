@@ -23,7 +23,7 @@ def get_dictionaries_list(request):
     return JsonResponse({'dictionaries': dictionaries})
 
 # Получение данных отдельных справочников
-# @login_required
+@login_required
 @require_GET
 def get_danger_classes(request):
     danger_classes = DangerClass.objects.all().values(

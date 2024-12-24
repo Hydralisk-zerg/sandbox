@@ -101,6 +101,10 @@ const Dashboard: React.FC = () => {
     }
     procedureStorage.saveProcedures(updatedProcedures);
   };
+  const updateProcedures = () => {
+    const updatedProcedures = procedureStorage.getProcedures();
+    setProcedures(updatedProcedures);
+  };
 
   const handleProcedureDelete = (procedureId: string) => {
     const updatedProcedures = allProcedures.filter(p => p.id !== procedureId);
@@ -257,6 +261,7 @@ const Dashboard: React.FC = () => {
                 onProcedureEdit={handleProcedureEdit}
                 onProcedureFilter={handleProcedureFilter}
                 isFiltered={isFiltered}
+                onUpdate={updateProcedures}
               />
             </Col>
             <Col xs={24} sm={12} md={6}>
