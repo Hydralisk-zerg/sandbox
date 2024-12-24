@@ -89,100 +89,158 @@ const ProcedureDetailsModal: React.FC<ModalProps> = ({
 
 
   // Функція отримання даних для селектів
-  const fetchSelectData = async (sourceTable: string): Promise<any[]> => {
+  const fetchSelectData = async (sourceTable: string, sourceColumn: string): Promise<any> => {
     try {
-      let response: any;
-      let formattedData: any[] = [];
-      if (dataCache[sourceTable] && dataCache[sourceTable].length > 0) {
-        return dataCache[sourceTable];
+      if (!sourceColumn) {
+        return [];
       }
 
+      const cacheKey = `${sourceTable}_${sourceColumn}`;
+      
+      if (dataCache[cacheKey] && dataCache[cacheKey].length > 0) {
+        return dataCache[cacheKey];
+      }
+  
+      let response: any;
+      let formattedData: any[] = [];
+  
       switch (sourceTable) {
         case 'countries':
           response = await api.get('dictionary/countries/');
-          console.log('dictionary/countries/', response)
-          formattedData = response.countries.map((country: any) => ({
-            value: country.id,
-            label: country.name_uk || country.name_en
-          }));
+          formattedData = response.countries
+            .filter((country: any) => country[sourceColumn as keyof typeof country])
+            .map((country: any) => ({
+              value: country.id,
+              label: country[sourceColumn as keyof typeof country],
+            }));
           break;
-
+      
         case 'cities':
           response = await api.get('dictionary/cities/');
-          console.log('dictionary/cities/', response)
-          formattedData = response.cities.map((city: any) => ({
-            value: city.id,
-            label: city.name_uk || city.name_en
-          }));
+          formattedData = response.cities
+            .filter((city: any) => city[sourceColumn as keyof typeof city])
+            .map((city: any) => ({
+              value: city.id,
+              label: city[sourceColumn as keyof typeof city],
+            }));
           break;
+      
         case 'terminals':
           response = await api.get('dictionary/terminals/');
-          console.log('dictionary/terminals/', response)
-          formattedData = response.terminals.map((terminal: any) => ({
-            value: terminal.id,
-            label: terminal.name_uk || terminal.name_en
-          }));
+          formattedData = response.terminals
+            .filter((terminal: any) => terminal[sourceColumn as keyof typeof terminal])
+            .map((terminal: any) => ({
+              value: terminal.id,
+              label: terminal[sourceColumn as keyof typeof terminal],
+            }));
+          break;
+      
         case 'currencies':
           response = await api.get('dictionary/currencies/');
-          console.log('dictionary/currencies/', response)
-          formattedData = response.currencies.map((currency: any) => ({
-            value: currency.id,
-            label: `${currency.name} (${currency.code})`
-          }));
+          formattedData = response.currencies
+            .filter((currency: any) => currency[sourceColumn as keyof typeof currency])
+            .map((currency: any) => ({
+              value: currency.id,
+              label: currency[sourceColumn as keyof typeof currency],
+            }));
+          break;
+      
         case 'containers':
           response = await api.get('dictionary/containers/');
-          console.log('dictionary/containers/', response)
-          formattedData = response.containers.map((container: any) => ({
-            value: container.id,
-            label: `${container.size} - ${container.container_type}`
-          }));
+          formattedData = response.containers
+            .filter((container: any) => container[sourceColumn as keyof typeof container])
+            .map((container: any) => ({
+              value: container.id,
+              label: container[sourceColumn as keyof typeof container],
+            }));
+          break;
+      
+        case 'incoterms':
+          response = await api.get('dictionary/incoterms/');
+          formattedData = response.incoterms
+            .filter((incoterm: any) => incoterm[sourceColumn as keyof typeof incoterm])
+            .map((incoterm: any) => ({
+              value: incoterm.id,
+              label: incoterm[sourceColumn as keyof typeof incoterm],
+            }));
+          break;
+      
+        case 'packaging_types':
+          response = await api.get('dictionary/packaging_types/');
+          formattedData = response.packaging_types
+            .filter((type: any) => type[sourceColumn as keyof typeof type])
+            .map((type: any) => ({
+              value: type.id,
+              label: type[sourceColumn as keyof typeof type],
+            }));
+          break;
+      
+        case 'delivery_types':
+          response = await api.get('dictionary/delivery_types/');
+          formattedData = response.delivery_types
+            .filter((type: any) => type[sourceColumn as keyof typeof type])
+            .map((type: any) => ({
+              value: type.id,
+              label: type[sourceColumn as keyof typeof type],
+            }));
+          break;
+      
+        case 'cargos':
+          response = await api.get('dictionary/cargos/');
+          formattedData = response.cargos
+            .filter((cargo: any) => cargo[sourceColumn as keyof typeof cargo])
+            .map((cargo: any) => ({
+              value: cargo.id,
+              label: cargo[sourceColumn as keyof typeof cargo],
+            }));
+          break;
+      
         case 'danger_classes':
           response = await api.get('dictionary/danger_classes/');
-          console.log('dictionary/danger_classes/', response)
-          formattedData = response.danger_classes.map((dangerClass: any) => ({
-            value: dangerClass.id,
-            label: `${dangerClass.class_number} - ${dangerClass.description}`
-          }));
-        case 'employees':
-          response = await api.getEmployees();
-          console.log(response)
-          formattedData = response.map((employee: any) => ({
-            value: employee.id,
-            label: `${employee.user__first_name} ${employee.user__last_name}`
-          }));
-        // Додайте інші кейси для інших таблиць
+          formattedData = response.danger_classes
+            .filter((dangerClass: any) => dangerClass[sourceColumn as keyof typeof dangerClass])
+            .map((dangerClass: any) => ({
+              value: dangerClass.id,
+              label: dangerClass[sourceColumn as keyof typeof dangerClass],
+            }));
+          break;
+      
         default:
+          console.warn(`Unknown source table: ${sourceTable}`);
           return [];
       }
-
-      dataCache[sourceTable] = formattedData;
+      
+      dataCache[cacheKey] = formattedData;
       return formattedData;
-
     } catch (error) {
       console.error(`Error fetching ${sourceTable} data:`, error);
       return [];
     }
-  };
+};
+
 
   // Завантаження всіх необхідних даних
   const loadAllSelectData = async () => {
     try {
-      const uniqueTables = new Set(
-        linkedData
-          .filter(data => data.fieldType === 'select' && data.sourceTable)
-          .map(data => data.sourceTable as string)
-      );
+      const uniqueSelects = linkedData
+        .filter(data => data.fieldType === 'select' && data.sourceTable)
+        .map(data => ({
+          table: data.sourceTable as string,
+          column: data.sourceColumn
+        }));
   
-      const loadPromises = Array.from(uniqueTables).map(async (table) => {
-        const data = await fetchSelectData(table);
-        return { table, data };
-      });
+        const loadPromises = uniqueSelects.map(async ({ table, column }) => {
+          if (!column) return { table, column, data: [] };
+          const data = await fetchSelectData(table, column);
+          return { table, column, data };
+        });
   
       const results = await Promise.all(loadPromises);
       
       const newSelectData = { ...selectData };
-      results.forEach(({ table, data }) => {
-        newSelectData[table] = data;
+      results.forEach(({ table, column, data }) => {
+        const key = `${table}_${column}`;
+        newSelectData[key] = data;
       });
   
       setSelectData(newSelectData);
@@ -252,7 +310,8 @@ const ProcedureDetailsModal: React.FC<ModalProps> = ({
 
   const renderDataField = (fieldData: Data) => {
     if (fieldData.fieldType === 'select' && fieldData.sourceTable) {
-      const options = selectData[fieldData.sourceTable] || [];
+      const selectKey = `${fieldData.sourceTable}_${fieldData.sourceColumn}`;
+      const options = selectData[selectKey] || [];
       
       return (
         <Form.Item
@@ -268,7 +327,7 @@ const ProcedureDetailsModal: React.FC<ModalProps> = ({
             filterOption={(input, option) =>
               (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
             }
-            // disabled={loading || options.length === 0}
+            disabled={loading || options.length === 0}
           />
         </Form.Item>
       );
