@@ -5,18 +5,19 @@ import ProcedureColumn from './components/ProcedureColumn';
 import TasksColumn from './components/TasksColumn';
 import EventsColumn from './components/EventsColumn';
 import DataColumn from './components/DатаColumn';
-import { 
-  procedureStorage, 
-  taskStorage, 
-  eventStorage, 
-  dataStorage 
+import {
+  procedureStorage,
+  taskStorage,
+  eventStorage,
+  dataStorage
 } from '../../services/templateStorage';
-import { 
-  Procedure, 
-  Task, 
-  Data, 
-  Event as CustomEvent 
+import {
+  Procedure,
+  Task,
+  Data,
+  Event as CustomEvent
 } from '../../interfaces/interfase';
+import { DictionaryProvider } from '../../hooks/useDictionary';
 
 const { Content } = Layout;
 
@@ -50,13 +51,13 @@ const Dashboard: React.FC = () => {
 
   // Функция обновления отфильтрованных элементов
   const updateFilteredItems = (procedure: Procedure) => {
-    const linkedTasks = tasks.filter(task => 
+    const linkedTasks = tasks.filter(task =>
       procedure.linkedItems?.tasks?.includes(task.id)
     );
-    const linkedEvents = events.filter(event => 
+    const linkedEvents = events.filter(event =>
       procedure.linkedItems?.events?.includes(event.id)
     );
-    const linkedData = data.filter(data => 
+    const linkedData = data.filter(data =>
       procedure.linkedItems?.data?.includes(data.id)
     );
 
@@ -281,14 +282,16 @@ const Dashboard: React.FC = () => {
               />
             </Col>
             <Col xs={24} sm={12} md={6}>
-              <DataColumn
-                data={isFiltered ? filteredData : data}
-                loading={false}
-                error={undefined}
-                onDataAdd={handleDataAdd}
-                onDataDelete={handleDataDelete}
-                onDataEdit={handleDataEdit}
-              />
+              <DictionaryProvider>
+                <DataColumn
+                  data={isFiltered ? filteredData : data}
+                  loading={false}
+                  error={undefined}
+                  onDataAdd={handleDataAdd}
+                  onDataDelete={handleDataDelete}
+                  onDataEdit={handleDataEdit}
+                />
+              </DictionaryProvider>
             </Col>
           </Row>
         </Content>

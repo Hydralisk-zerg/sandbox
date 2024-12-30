@@ -19,13 +19,12 @@ import {
   DeleteOutlined,
   EditOutlined,
   MoreOutlined,
-  ContactsOutlined
 } from '@ant-design/icons';
-import { useForm } from 'antd/lib/form/Form';
 import { api } from '../../../../services/apiClient';
 import { Data, DataColumnProps, Employee } from '../../../../interfaces/interfase';
 import Paragraph from 'antd/es/typography/Paragraph';
 import Title from 'antd/es/typography/Title';
+import { useDictionary } from '../../../../hooks/useDictionary';
 
 
 const DataColumn: React.FC<DataColumnProps> = ({
@@ -42,6 +41,8 @@ const DataColumn: React.FC<DataColumnProps> = ({
   const [columns, setColumns] = useState<string[]>([]);
   const [selectedFieldType, setSelectedFieldType] = useState<string | null>(null);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const { fetchTablesList, fetchTableColumns } = useDictionary();
+
   const [form] = Form.useForm();
 
   useEffect(() => {
@@ -49,6 +50,39 @@ const DataColumn: React.FC<DataColumnProps> = ({
       loadTables();
     }
   }, [isModalVisible]);
+
+  const loadTables = async () => {
+    try {
+      const tablesList = await fetchTablesList();
+      console.log('tablesList', tablesList)
+      if (Array.isArray(tablesList)) {
+        setTables(tablesList);
+      } else {
+        // Якщо прийшов об'єкт, перетворюємо його ключі на масив
+        setTables(Object.keys(tablesList));
+      }
+    } catch (error) {
+      console.error('Помилка завантаження таблиць:', error);
+      setTables([]); // У випадку помилки встановлюємо пустий масив
+    }
+  };
+
+  // Перевіряємо чи є tables масивом перед використанням map
+  const renderTableOptions = () => {
+    if (!Array.isArray(tables)) return null;
+
+    return tables.map(table => (
+      <Select.Option key={table} value={table}>
+        {table}
+      </Select.Option>
+    ));
+  };
+
+  const handleTableSelect = async (tableName: string) => {
+    const columnsList = await fetchTableColumns(tableName);
+    setColumns(columnsList);
+    form.setFieldValue('sourceColumn', undefined);
+  };
 
   // Завантаження співробітників
   const loadEmployees = async () => {
@@ -61,32 +95,12 @@ const DataColumn: React.FC<DataColumnProps> = ({
     }
   };
 
-  const loadTables = async () => {
-    try {
-      const response = await api.getAllDictianary();
-      setTables(response);
-    } catch (error) {
-      console.error('Помилка завантаження таблиць:', error);
-    }
-  };
-
   const handleAddClick = () => {
     setIsModalVisible(true);
     setEditingData(null);
     form.resetFields();
     setSelectedFieldType(null);
     setColumns([]);
-  };
-
-  const handleTableSelect = (tableName: string) => {
-    if (tables[tableName] && Array.isArray(tables[tableName])) {
-      const tableData = tables[tableName];
-      if (tableData.length > 0) {
-        const columnNames = Object.keys(tableData[0]);
-        setColumns(columnNames);
-        form.setFieldValue('sourceColumn', undefined);
-      }
-    }
   };
 
   const handleFieldTypeChange = (value: string) => {
@@ -302,34 +316,19 @@ const DataColumn: React.FC<DataColumnProps> = ({
             </Select>
           </Form.Item>
 
-          { selectedFieldType === 'select'&& (
+          {selectedFieldType === 'select' && (
             <>
-              <Form.Item
-                name="sourceTable"
-                label="Таблиця"
-                rules={[{ required: true, message: 'Оберіть таблицю' }]}
-              >
+              <Form.Item name="sourceTable" label="Таблиця">
                 <Select
                   onChange={handleTableSelect}
                   placeholder="Оберіть таблицю"
                 >
-                  {Object.keys(tables).map(table => (
-                    <Select.Option key={table} value={table}>
-                      {table}
-                    </Select.Option>
-                  ))}
+                  {renderTableOptions()}
                 </Select>
               </Form.Item>
 
-              <Form.Item
-                name="sourceColumn"
-                label="Колонка"
-                rules={[{ required: true, message: 'Оберіть колонку' }]}
-              >
-                <Select
-                  placeholder="Оберіть колонку"
-                  disabled={!form.getFieldValue('sourceTable')}
-                >
+              <Form.Item name="sourceColumn" label="Колонка">
+                <Select disabled={!form.getFieldValue('sourceTable')}>
                   {columns.map(column => (
                     <Select.Option key={column} value={column}>
                       {column}
