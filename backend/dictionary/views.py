@@ -1,6 +1,6 @@
 from django.views.decorators.http import require_GET
 from django.http import JsonResponse
-from .models import Country, City, Terminal, Currency, Container, DangerClass, Incoterms, PackagingType, DeliveryType, Cargo, Employee 
+from .models import Country, City, Terminal, Currency, Container, DangerClass, Incoterms, PackagingType, DeliveryType, Cargo, Employee, Department 
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 from django.core import serializers
 
@@ -36,6 +36,7 @@ def get_danger_classes(request):
 def get_departments(request):
     departments = Department.objects.all().values('id', 'name')
     return JsonResponse({'departments': list(departments)})
+
 
 @login_required
 @require_GET

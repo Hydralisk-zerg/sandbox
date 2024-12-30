@@ -75,14 +75,21 @@ export interface Procedure extends BaseItem{
 }
 // Задачи
 export interface Task extends BaseItem{
-  dueDate: string;
-  status: 'todo' | 'in_progress' | 'done';
-  priority: 'low' | 'medium' | 'high';
-}
+  department: string;
+    employee: string;
+    status: 'todo' | 'in_progress' | 'done';
+    priority: 'low' | 'medium' | 'high';
+    customFields: {
+      [key: string]: any;
+    };
+    createdAt: string;
+    updatedAt: string;
+  }
 
 // Шаблоны
 
 export interface Data extends BaseItem {
+  options: any;
   fieldName: string;
   fieldType: 'text' | 'number' | 'date' | 'select' | 'employees'; // додано 'employees'
   sourceTable?: string;

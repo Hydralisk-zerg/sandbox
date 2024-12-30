@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Typography, Space, Empty, Form, Input, Select, Spin } from 'antd';
-import { taskStorage, eventStorage, dataStorage } from '../../../../services/templateStorage';
+import { dataStorage } from '../../../../services/templateStorage';
 import { api } from '../../../../services/apiClient';
-import { Task } from '../../../../interfaces/interfase';
 
 const { Title } = Typography;
 
@@ -44,8 +43,6 @@ const ProcedureDetailsModal: React.FC<ModalProps> = ({
 }) => {
   const [form] = Form.useForm();
   const [procedure, setProcedure] = useState<Procedure | null>(null);
-  const [linkedTasks, setLinkedTasks] = useState<Task[]>([]);
-  const [linkedEvents, setLinkedEvents] = useState<Event[]>([]);
   const [linkedData, setLinkedData] = useState<Data[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectData, setSelectData] = useState<Record<string, any[]>>({});

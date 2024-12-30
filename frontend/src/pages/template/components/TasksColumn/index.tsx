@@ -1,5 +1,5 @@
 // components/TasksColumn/index.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   List,
@@ -12,19 +12,27 @@ import {
   Form,
   Input,
   Dropdown,
-  Menu
+  Select,
+  DatePicker,
 } from 'antd';
 import {
   PlusOutlined,
   DeleteOutlined,
   EditOutlined,
-  CheckOutlined,
   MoreOutlined
 } from '@ant-design/icons';
-import { Task, TasksColumnProps } from '../../../../interfaces/interfase';
+import { Data, Department, Employee, Task, TasksColumnProps } from '../../../../interfaces/interfase';
+import { api } from '../../../../services/apiClient';
 
-const { Title, Paragraph } = Typography;
+const { Option } = Select;
+const { Title } = Typography;
 const { TextArea } = Input;
+
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+  message?: string;
+}
 
 const TasksColumn: React.FC<TasksColumnProps> = ({
   tasks,
@@ -38,6 +46,69 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [form] = Form.useForm();
 
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [customFields, setCustomFields] = useState<Array<any>>([]);
+
+
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const responseEmployees = await api.getEmployees()
+        console.log('Employees:', responseEmployees);
+        setEmployees(responseEmployees || []);
+    
+      }
+
+      catch (error) {
+        console.error('Ошибка загрузки отделов:', error);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const responseDepartment = await api.getDepartments()
+        console.log('Departments:', responseDepartment);
+        setDepartments(responseDepartment.departments || []);
+      }
+
+      catch (error) {
+        console.error('Ошибка загрузки отделов:', error);
+      }
+    };
+
+    loadData();
+  }, []);
+
+
+  // Функция рендера кастомного поля
+  const renderCustomField = (field: Data) => {
+    switch (field.fieldType) {
+      case 'text':
+        return <Input />;
+      case 'number':
+        return <Input type="number" />;
+      case 'date':
+        return <DatePicker />;
+      case 'select':
+        return (
+          <Select>
+            {field.options?.map((option: any) => (
+              <Select.Option key={option.value} value={option.value}>
+                {option.label}
+              </Select.Option>
+            ))}
+          </Select>
+        );
+      default:
+        return <Input />;
+    }
+  };
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
@@ -48,11 +119,11 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
       }
       setIsModalVisible(false);
       form.resetFields();
-      setEditingTask(null);
     } catch (error) {
       console.error('Validation failed:', error);
     }
   };
+
   const handleModalCancel = () => {
     setIsModalVisible(false);
     form.resetFields();
@@ -169,30 +240,61 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
       </Card>
 
       <Modal
-        title={editingTask ? "Редактировать задачу" : "Добавить задачу"}
-        open={isModalVisible}
+        title={editingTask ? "Редактировать задачу" : "Создать задачу"}
+        visible={isModalVisible}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
-        okText={editingTask ? "Сохранить" : "Добавить"}
-        cancelText="Отмена"
       >
-        <Form
-          form={form}
-          layout="vertical"
-        >
+        <Form form={form} layout="vertical">
           <Form.Item
-            name="name"
+            name="title"
             label="Название"
             rules={[{ required: true, message: 'Введите название задачи' }]}
           >
             <Input />
           </Form.Item>
-          <Form.Item
-            name="description"
-            label="Описание"
-          >
-            <TextArea rows={4} />
+
+          <Form.Item name="description" label="Описание">
+            <Input.TextArea />
           </Form.Item>
+
+          <Form.Item
+            name="departmentId"
+            label="Отдел"
+            rules={[{ required: true, message: 'Выберите отдел' }]}
+          >
+            <Select placeholder="Выберите отдел">
+              {departments.map(dept => (
+                <Option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          {/* Селект для сотрудников */}
+          <Form.Item
+            name="employeeId"
+            label="Ответственный"
+            rules={[{ required: true, message: 'Выберите ответственного' }]}
+          >
+            <Select placeholder="Выберите сотрудника">
+              {employees.map(emp => (
+                <Option key={emp.id} value={emp.id}>
+                  {!emp.firstName && !emp.lastName ? emp.username : `${emp.firstName} ${emp.lastName}`}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+          {customFields.map(field => (
+            <Form.Item
+              key={field.id}
+              name={['customFields', field.fieldName]}
+              label={field.name}
+            >
+              {renderCustomField(field)}
+            </Form.Item>
+          ))}
         </Form>
       </Modal>
     </>

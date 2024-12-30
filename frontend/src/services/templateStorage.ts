@@ -76,20 +76,33 @@ export const procedureStorage = {
 
 export const taskStorage = {
     getTasks: () => storage.get(STORAGE_KEYS.TASKS),
+    
     saveTasks: (tasks: Task[]) => storage.set(STORAGE_KEYS.TASKS, tasks),
-    saveTask: (task: Task) => {
+    
+    saveTask: (task: Omit<Task, 'id'>) => {
         try {
-            const tasks = storage.get(STORAGE_KEYS.TASKS);
-            tasks.push(task);
+            const tasks = storage.get(STORAGE_KEYS.TASKS) || [];
+            const newTask = {
+                ...task,
+                id: uuidv4(),
+                department: task.department || '',
+                employee: task.employee || '',
+                customFields: task.customFields || {},
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            tasks.push(newTask);
             storage.set(STORAGE_KEYS.TASKS, tasks);
+            return newTask;
         } catch (error) {
             console.error('Ошибка сохранения задачи:', error);
             throw error;
         }
     },
+    
     deleteTask: (taskId: string) => {
         try {
-            const tasks = storage.get(STORAGE_KEYS.TASKS);
+            const tasks = storage.get(STORAGE_KEYS.TASKS) || [];
             const filtered = tasks.filter((t: Task) => t.id !== taskId);
             storage.set(STORAGE_KEYS.TASKS, filtered);
         } catch (error) {
@@ -97,16 +110,25 @@ export const taskStorage = {
             throw error;
         }
     },
+    
     updateTask: (updatedTask: Task) => {
         try {
-            const tasks = storage.get(STORAGE_KEYS.TASKS);
+            const tasks = storage.get(STORAGE_KEYS.TASKS) || [];
             const index = tasks.findIndex((t: Task) => t.id === updatedTask.id);
+            
             if (index !== -1) {
                 tasks[index] = {
                     ...updatedTask,
+                    department: updatedTask.department || tasks[index].department,
+                    employee: updatedTask.employee || tasks[index].employee,
+                    customFields: {
+                        ...tasks[index].customFields,
+                        ...updatedTask.customFields
+                    },
                     updatedAt: new Date().toISOString()
                 };
                 storage.set(STORAGE_KEYS.TASKS, tasks);
+                return tasks[index];
             }
         } catch (error) {
             console.error('Ошибка обновления задачи:', error);
@@ -114,6 +136,7 @@ export const taskStorage = {
         }
     }
 };
+
 
 export const dataStorage = {
     getData: () => storage.get(STORAGE_KEYS.DATA),

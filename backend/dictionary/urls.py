@@ -17,4 +17,5 @@ urlpatterns = [
     path('cargos/', views.get_cargos, name='cargos'),
     path('all/', views.get_all_dictionaries, name='all_dictionaries'),
     path('get_employees/', views.get_employees, name='get_employees'),
+    path('get_departments/', views.get_departments, name='get_departments'),
 ]

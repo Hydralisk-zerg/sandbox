@@ -101,6 +101,9 @@ interface ApiClientConfig {
     async getDictianaryInfoPage(name: any): Promise<any>{
       return this.get(`dictionary/${name}/`);
     }
+    async getDepartments(): Promise<any> {
+      return this.get('dictionary/get_departments/');
+  }
   }
   
   // Создаем экземпляр API клиента
