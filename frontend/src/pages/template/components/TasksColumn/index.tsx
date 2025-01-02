@@ -19,10 +19,13 @@ import {
   PlusOutlined,
   DeleteOutlined,
   EditOutlined,
-  MoreOutlined
+  MoreOutlined,
+  EyeOutlined
 } from '@ant-design/icons';
 import { Data, Department, Employee, Task, TasksColumnProps } from '../../../../interfaces/interfase';
 import { api } from '../../../../services/apiClient';
+import { dataStorage } from '../../../../services/templateStorage';
+import TaskDetailsModal from './TaskDetailsModal';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -49,36 +52,47 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
   const [departments, setDepartments] = useState<Department[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [customFields, setCustomFields] = useState<Array<any>>([]);
+  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
+  const [isCardModalVisible, setIsCardModalVisible] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
+
+  const handleDepartmentChange = (departmentId: number) => {
+    const filteredEmps = employees.filter(emp =>
+      emp.department && emp.department.id === departmentId
+    );
+    setFilteredEmployees(filteredEmps);
+
+    // Очищаем значение поля сотрудника
+    form.setFieldValue('employeeId', undefined);
+  }
+  useEffect(() => {
+    if (editingTask?.department?.id) {
+      const filteredEmps = employees.filter(emp => emp.department?.id === editingTask.department.id);
+      setFilteredEmployees(filteredEmps);
+    }
+  }, [editingTask, employees]);
 
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const responseEmployees = await api.getEmployees()
-        console.log('Employees:', responseEmployees);
-        setEmployees(responseEmployees || []);
-    
-      }
+        // Загрузка сотрудников и отделов
+        const [employeesResponse, departmentsResponse] = await Promise.all([
+          api.getEmployees(),
+          api.getDepartments()
+        ]);
 
-      catch (error) {
-        console.error('Ошибка загрузки отделов:', error);
-      }
-    };
+        setEmployees(employeesResponse || []);
+        setDepartments(departmentsResponse.departments || []);
 
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const responseDepartment = await api.getDepartments()
-        console.log('Departments:', responseDepartment);
-        setDepartments(responseDepartment.departments || []);
-      }
-
-      catch (error) {
-        console.error('Ошибка загрузки отделов:', error);
+        // Загрузка кастомных полей из локального хранилища
+        const customFieldsData = dataStorage.getData();
+        setCustomFields(customFieldsData || []);
+      } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+        setLoadingError('Не удалось загрузить данные');
       }
     };
 
@@ -88,16 +102,18 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
 
   // Функция рендера кастомного поля
   const renderCustomField = (field: Data) => {
+    console.log('Rendering custom field:', field); // Для отладки
+
     switch (field.fieldType) {
       case 'text':
-        return <Input />;
+        return <Input placeholder={`Введите ${field.name.toLowerCase()}`} />;
       case 'number':
-        return <Input type="number" />;
+        return <Input type="number" placeholder={`Введите ${field.name.toLowerCase()}`} />;
       case 'date':
-        return <DatePicker />;
+        return <DatePicker placeholder={`Выберите ${field.name.toLowerCase()}`} />;
       case 'select':
         return (
-          <Select>
+          <Select placeholder={`Выберите ${field.name.toLowerCase()}`}>
             {field.options?.map((option: any) => (
               <Select.Option key={option.value} value={option.value}>
                 {option.label}
@@ -106,19 +122,61 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
           </Select>
         );
       default:
+        console.warn('Неизвестный тип поля:', field.fieldType);
         return <Input />;
     }
   };
+
+  const updateCustomFields = () => {
+    const customFieldsData = dataStorage.getData();
+    setCustomFields(customFieldsData || []);
+  };
+
+  useEffect(() => {
+    // Функция-обработчик изменений в localStorage
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'customFields') { // или ключ, который вы используете для хранения
+        updateCustomFields();
+      }
+    };
+
+    // Добавляем слушатель
+    window.addEventListener('storage', handleStorageChange);
+
+    // Начальная загрузка данных
+    updateCustomFields();
+
+    // Очистка при размонтировании
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+
+  // Обновите функцию handleModalOk для сохранения кастомных полей
   const handleModalOk = async () => {
     try {
       const values = await form.validateFields();
+      const departmentObj = departments.find(d => d.id === values.departmentId);
+
+      // Получаем значения кастомных полей из формы
+      const customFieldValues = values.customFields || {};
+
+      const taskData = {
+        ...values,
+        department: departmentObj,
+        customFields: customFieldValues // Добавляем кастомные поля
+      };
+
       if (editingTask) {
-        onTaskEdit({ ...editingTask, ...values });
+        onTaskEdit({ ...editingTask, ...taskData });
       } else {
-        onTaskAdd(values);
+        onTaskAdd(taskData);
       }
+
       setIsModalVisible(false);
       form.resetFields();
+      setEditingTask(null);
     } catch (error) {
       console.error('Validation failed:', error);
     }
@@ -132,7 +190,13 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
 
   const showEditModal = (task: Task) => {
     setEditingTask(task);
-    form.setFieldsValue(task);
+    form.setFieldsValue({
+      title: task.name,
+      description: task.description,
+      departmentId: task.department?.id || undefined,
+      employeeId: task.employee?.id || undefined,
+      customFields: task.customFields || {} // Установка значений кастомных полей
+    });
     setIsModalVisible(true);
   };
 
@@ -175,6 +239,15 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
               <Dropdown
                 menu={{
                   items: [
+                    {
+                      key: "show",
+                      icon: <EyeOutlined />,
+                      onClick: () => {
+                        setSelectedTask(task);
+                        setIsCardModalVisible(true);
+                      },
+                      label: 'Показать карточку'
+                    },
                     {
                       key: "edit",
                       label: 'Редактировать',
@@ -245,6 +318,16 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
         onOk={handleModalOk}
         onCancel={handleModalCancel}
       >
+        {loadingError && (
+          <Alert
+            message="Ошибка загрузки данных"
+            description={loadingError}
+            type="error"
+            showIcon
+            style={{ marginBottom: 16 }}
+          />
+        )}
+
         <Form form={form} layout="vertical">
           <Form.Item
             name="title"
@@ -257,13 +340,15 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
           <Form.Item name="description" label="Описание">
             <Input.TextArea />
           </Form.Item>
-
           <Form.Item
             name="departmentId"
             label="Отдел"
             rules={[{ required: true, message: 'Выберите отдел' }]}
           >
-            <Select placeholder="Выберите отдел">
+            <Select
+              placeholder="Выберите отдел"
+              onChange={handleDepartmentChange}
+            >
               {departments.map(dept => (
                 <Option key={dept.id} value={dept.id}>
                   {dept.name}
@@ -271,32 +356,53 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
               ))}
             </Select>
           </Form.Item>
-
-          {/* Селект для сотрудников */}
           <Form.Item
             name="employeeId"
-            label="Ответственный"
-            rules={[{ required: true, message: 'Выберите ответственного' }]}
+            label="Сотрудник"
+            rules={[{ required: true, message: 'Выберите сотрудника' }]}
           >
-            <Select placeholder="Выберите сотрудника">
-              {employees.map(emp => (
+            <Select
+              placeholder="Выберите сотрудника"
+              disabled={!form.getFieldValue('departmentId')}
+              showSearch
+              filterOption={(input, option) => {
+                if (!option) return false;
+                const childrenString = String(option.children);
+                return childrenString.toLowerCase().includes(input.toLowerCase());
+              }}
+            >
+              {filteredEmployees.map(emp => (
                 <Option key={emp.id} value={emp.id}>
-                  {!emp.firstName && !emp.lastName ? emp.username : `${emp.firstName} ${emp.lastName}`}
+                  {!emp.firstName && !emp.lastName
+                    ? emp.username
+                    : `${emp.firstName} ${emp.lastName}`}
                 </Option>
               ))}
             </Select>
           </Form.Item>
-          {customFields.map(field => (
-            <Form.Item
-              key={field.id}
-              name={['customFields', field.fieldName]}
-              label={field.name}
+          <Form.Item
+            name={['linkedItems', 'data']}
+            label="Связанные данные"
+          >
+            <Select
+              mode="multiple"
+              placeholder="Выберите данные"
+              optionFilterProp="children"
             >
-              {renderCustomField(field)}
-            </Form.Item>
-          ))}
+              {customFields.map(field => (
+                <Select.Option key={field.id} value={field.id}>
+                  {field.name}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
         </Form>
       </Modal>
+      <TaskDetailsModal
+        taskId={selectedTask?.id || ''}
+        isVisible={isCardModalVisible}
+        onClose={() => setIsCardModalVisible(false)}
+      />
     </>
   );
 };

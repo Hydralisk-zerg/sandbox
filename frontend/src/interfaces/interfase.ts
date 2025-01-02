@@ -75,8 +75,8 @@ export interface Procedure extends BaseItem{
 }
 // Задачи
 export interface Task extends BaseItem{
-  department: string;
-    employee: string;
+  department: Department;
+    employee: Employee;
     status: 'todo' | 'in_progress' | 'done';
     priority: 'low' | 'medium' | 'high';
     customFields: {
