@@ -57,7 +57,7 @@ export interface BaseItem {
 }
 
 // События
-export interface Event extends BaseItem{
+export interface Event extends BaseItem {
   date: string;
   time: string;
   status: 'pending' | 'completed';
@@ -65,7 +65,7 @@ export interface Event extends BaseItem{
 }
 
 // Проекты
-export interface Procedure extends BaseItem{
+export interface Procedure extends BaseItem {
   linkedItems: {
     tasks: string[];      // ID связанных задач
     events: string[];     // ID связанных событий
@@ -74,17 +74,32 @@ export interface Procedure extends BaseItem{
   status: 'active' | 'completed' | 'pending';
 }
 // Задачи
-export interface Task extends BaseItem{
+enum TaskStatus {
+  PLANNED = 'PLANNED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED'
+}
+
+enum TaskPriority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  URGENT = 'URGENT'
+}
+
+
+export interface Task extends BaseItem {
   department: Department;
-    employee: Employee;
-    status: 'todo' | 'in_progress' | 'done';
-    priority: 'low' | 'medium' | 'high';
-    customFields: {
-      [key: string]: any;
-    };
-    createdAt: string;
-    updatedAt: string;
-  }
+  employee: Employee;
+  status: TaskStatus;
+  priority: TaskPriority;
+  linkedItems
+  : {
+    [key: string]: any;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
 
 // Шаблоны
 

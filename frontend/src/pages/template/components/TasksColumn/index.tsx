@@ -29,13 +29,6 @@ import TaskDetailsModal from './TaskDetailsModal';
 
 const { Option } = Select;
 const { Title } = Typography;
-const { TextArea } = Input;
-
-interface ApiResponse<T> {
-  data: T;
-  status: number;
-  message?: string;
-}
 
 const TasksColumn: React.FC<TasksColumnProps> = ({
   tasks,
@@ -47,8 +40,6 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [form] = Form.useForm();
-
   const [departments, setDepartments] = useState<Department[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [customFields, setCustomFields] = useState<Array<any>>([]);
@@ -57,6 +48,7 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
   const [isCardModalVisible, setIsCardModalVisible] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
+  const [form] = Form.useForm();
 
   const handleDepartmentChange = (departmentId: number) => {
     const filteredEmps = employees.filter(emp =>
@@ -99,33 +91,6 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
     loadData();
   }, []);
 
-
-  // Функция рендера кастомного поля
-  const renderCustomField = (field: Data) => {
-    console.log('Rendering custom field:', field); // Для отладки
-
-    switch (field.fieldType) {
-      case 'text':
-        return <Input placeholder={`Введите ${field.name.toLowerCase()}`} />;
-      case 'number':
-        return <Input type="number" placeholder={`Введите ${field.name.toLowerCase()}`} />;
-      case 'date':
-        return <DatePicker placeholder={`Выберите ${field.name.toLowerCase()}`} />;
-      case 'select':
-        return (
-          <Select placeholder={`Выберите ${field.name.toLowerCase()}`}>
-            {field.options?.map((option: any) => (
-              <Select.Option key={option.value} value={option.value}>
-                {option.label}
-              </Select.Option>
-            ))}
-          </Select>
-        );
-      default:
-        console.warn('Неизвестный тип поля:', field.fieldType);
-        return <Input />;
-    }
-  };
 
   const updateCustomFields = () => {
     const customFieldsData = dataStorage.getData();
@@ -190,13 +155,24 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
 
   const showEditModal = (task: Task) => {
     setEditingTask(task);
+    
+    // Обновляем отфильтрованных сотрудников на основе отдела задачи
+    if (task.department?.id) {
+      const filteredEmps = employees.filter(emp => 
+        emp.department?.id === task.department?.id
+      );
+      setFilteredEmployees(filteredEmps);
+    }
+  
+    // Устанавливаем значения формы
     form.setFieldsValue({
-      title: task.name,
+      name: task.name,
       description: task.description,
-      departmentId: task.department?.id || undefined,
-      employeeId: task.employee?.id || undefined,
-      customFields: task.customFields || {} // Установка значений кастомных полей
+      departmentId: task.department?.id,
+      employeeId: task.employee?.id,
+      linkedItems: task.linkedItems || { data: [] },
     });
+  
     setIsModalVisible(true);
   };
 
@@ -330,7 +306,7 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
 
         <Form form={form} layout="vertical">
           <Form.Item
-            name="title"
+            name="name"
             label="Название"
             rules={[{ required: true, message: 'Введите название задачи' }]}
           >
@@ -359,7 +335,6 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
           <Form.Item
             name="employeeId"
             label="Сотрудник"
-            rules={[{ required: true, message: 'Выберите сотрудника' }]}
           >
             <Select
               placeholder="Выберите сотрудника"
@@ -380,6 +355,7 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
               ))}
             </Select>
           </Form.Item>
+          
           <Form.Item
             name={['linkedItems', 'data']}
             label="Связанные данные"

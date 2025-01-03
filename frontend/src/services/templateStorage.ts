@@ -84,13 +84,15 @@ export const taskStorage = {
             const tasks = storage.get(STORAGE_KEYS.TASKS) || [];
             const newTask = {
                 ...task,
+                name: task.name, // преобразуем title в name
                 id: uuidv4(),
                 department: task.department || '',
                 employee: task.employee || '',
-                customFields: task.customFields || {},
+                linkedItems: task.linkedItems || {},
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
+       // удаляем title, так как теперь используем name
             tasks.push(newTask);
             storage.set(STORAGE_KEYS.TASKS, tasks);
             return newTask;
@@ -119,14 +121,16 @@ export const taskStorage = {
             if (index !== -1) {
                 tasks[index] = {
                     ...updatedTask,
+                    name: updatedTask.name, // преобразуем title в name
                     department: updatedTask.department || tasks[index].department,
                     employee: updatedTask.employee || tasks[index].employee,
-                    customFields: {
-                        ...tasks[index].customFields,
-                        ...updatedTask.customFields
+                    linkedItems: {
+                        ...tasks[index].linkedItems,
+                        ...updatedTask.linkedItems
                     },
                     updatedAt: new Date().toISOString()
                 };
+                delete tasks[index].title; // удаляем title
                 storage.set(STORAGE_KEYS.TASKS, tasks);
                 return tasks[index];
             }

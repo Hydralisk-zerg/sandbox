@@ -3,20 +3,9 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Typography, Space, Empty, Form, Input, Select, Spin } from 'antd';
 import { dataStorage } from '../../../../services/templateStorage';
 import { api } from '../../../../services/apiClient';
+import { Task } from '../../../../interfaces/interfase';
 
 const { Title } = Typography;
-
-interface Task {
-  id: string;
-  name: string;
-  description: string;
-  department?: any;
-  employee?: any;
-  linkedItems?: {
-    data: string[];
-  };
-  customFields?: Record<string, any>;
-}
 
 interface ModalProps {
   taskId: string;
@@ -269,7 +258,7 @@ const TaskDetailsModal: React.FC<ModalProps> = ({
 
   return (
     <Modal
-      title={<Title level={4}>{task?.name || 'Детали задачи'}</Title>}
+      title={<Title level={4}>{`Задача: ${task?.name}` || 'Детали задачи'}</Title>}
       open={isVisible}
       onCancel={() => {
         onClose();
@@ -290,7 +279,6 @@ const TaskDetailsModal: React.FC<ModalProps> = ({
             <Title level={5}>Описание задачи</Title>
             <p>{task.description}</p>
           </div>
-
           {linkedData.length > 0 && (
             <div>
               <Title level={5}>Данные</Title>
