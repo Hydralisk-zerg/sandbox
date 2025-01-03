@@ -22,7 +22,7 @@ import {
   MoreOutlined,
   EyeOutlined
 } from '@ant-design/icons';
-import { Data, Department, Employee, Task, TasksColumnProps } from '../../../../interfaces/interfase';
+import { Data, Department, Employee, Task, TasksColumnProps, TaskStatus, TaskPriority } from '../../../../interfaces/interfase';
 import { api } from '../../../../services/apiClient';
 import { dataStorage } from '../../../../services/templateStorage';
 import TaskDetailsModal from './TaskDetailsModal';
@@ -155,24 +155,24 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
 
   const showEditModal = (task: Task) => {
     setEditingTask(task);
-    
-    // Обновляем отфильтрованных сотрудников на основе отдела задачи
+
     if (task.department?.id) {
-      const filteredEmps = employees.filter(emp => 
+      const filteredEmps = employees.filter(emp =>
         emp.department?.id === task.department?.id
       );
       setFilteredEmployees(filteredEmps);
     }
-  
-    // Устанавливаем значения формы
+
     form.setFieldsValue({
       name: task.name,
       description: task.description,
       departmentId: task.department?.id,
       employeeId: task.employee?.id,
+      status: task.status,         // Добавлено
+      priority: task.priority,     // Добавлено
       linkedItems: task.linkedItems || { data: [] },
     });
-  
+
     setIsModalVisible(true);
   };
 
@@ -293,6 +293,7 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
         visible={isModalVisible}
         onOk={handleModalOk}
         onCancel={handleModalCancel}
+        width={800} // Увеличиваем ширину модального окна
       >
         {loadingError && (
           <Alert
@@ -304,7 +305,11 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
           />
         )}
 
-        <Form form={form} layout="vertical">
+        <Form form={form}
+          layout="horizontal" // Меняем с vertical на horizontal
+          labelCol={{ span: 6 }} // Задаем ширину для лейблов
+          wrapperCol={{ span: 18 }} // Задаем ширину для полей ввода
+        >
           <Form.Item
             name="name"
             label="Название"
@@ -355,7 +360,30 @@ const TasksColumn: React.FC<TasksColumnProps> = ({
               ))}
             </Select>
           </Form.Item>
-          
+          <Form.Item
+            name="status"
+            label="Статус"
+          >
+            <Select placeholder="Выберите статус">
+              <Option value={TaskStatus.PLANNED}>Запланировано</Option>
+              <Option value={TaskStatus.IN_PROGRESS}>В работе</Option>
+              <Option value={TaskStatus.COMPLETED}>Завершено</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="priority"
+            label="Приоритет"
+  
+          >
+            <Select placeholder="Выберите приоритет">
+              <Option value={TaskPriority.LOW}>Низкий</Option>
+              <Option value={TaskPriority.MEDIUM}>Средний</Option>
+              <Option value={TaskPriority.HIGH}>Высокий</Option>
+              <Option value={TaskPriority.URGENT}>Срочный</Option>
+            </Select>
+          </Form.Item>
+
           <Form.Item
             name={['linkedItems', 'data']}
             label="Связанные данные"

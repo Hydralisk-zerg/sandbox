@@ -74,13 +74,13 @@ export interface Procedure extends BaseItem {
   status: 'active' | 'completed' | 'pending';
 }
 // Задачи
-enum TaskStatus {
+export enum TaskStatus {
   PLANNED = 'PLANNED',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED'
 }
 
-enum TaskPriority {
+export enum TaskPriority {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM',
   HIGH = 'HIGH',

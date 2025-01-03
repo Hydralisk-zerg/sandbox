@@ -1,16 +1,24 @@
-// TaskDetailsModal.tsx
 import React, { useEffect, useState } from 'react';
 import { Modal, Typography, Space, Empty, Form, Input, Select, Spin } from 'antd';
 import { dataStorage } from '../../../../services/templateStorage';
 import { api } from '../../../../services/apiClient';
-import { Task } from '../../../../interfaces/interfase';
+import { Task, TaskStatus, TaskPriority } from '../../../../interfaces/interfase';
 
 const { Title } = Typography;
+const { Option } = Select;
 
 interface ModalProps {
   taskId: string;
   isVisible: boolean;
   onClose: () => void;
+}
+
+interface TaskFormData {
+  name: string;
+  description: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  [key: string]: any;
 }
 
 const dataCache: Record<string, any[]> = {};
@@ -20,7 +28,7 @@ const TaskDetailsModal: React.FC<ModalProps> = ({
   isVisible,
   onClose
 }) => {
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<TaskFormData>();
   const [task, setTask] = useState<Task | null>(null);
   const [linkedData, setLinkedData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +49,12 @@ const TaskDetailsModal: React.FC<ModalProps> = ({
 
       if (currentTask) {
         setTask(currentTask);
+        form.setFieldsValue({
+          name: currentTask.name,
+          description: currentTask.description,
+          status: currentTask.status,
+          priority: currentTask.priority,
+        });
 
         if (currentTask.linkedItems?.data?.length > 0) {
           const allData = dataStorage.getData() || [];
@@ -78,80 +92,50 @@ const TaskDetailsModal: React.FC<ModalProps> = ({
         case 'countries':
           response = await api.get('dictionary/countries/');
           formattedData = response.countries
-            .filter((country: any) => country[sourceColumn as keyof typeof country])
+            .filter((country: any) => country[sourceColumn])
             .map((country: any) => ({
               value: country.id,
-              label: country[sourceColumn as keyof typeof country],
+              label: country[sourceColumn],
             }));
           break;
 
         case 'cities':
           response = await api.get('dictionary/cities/');
           formattedData = response.cities
-            .filter((city: any) => city[sourceColumn as keyof typeof city])
+            .filter((city: any) => city[sourceColumn])
             .map((city: any) => ({
               value: city.id,
-              label: city[sourceColumn as keyof typeof city],
+              label: city[sourceColumn],
             }));
           break;
 
         case 'terminals':
           response = await api.get('dictionary/terminals/');
           formattedData = response.terminals
-            .filter((terminal: any) => terminal[sourceColumn as keyof typeof terminal])
+            .filter((terminal: any) => terminal[sourceColumn])
             .map((terminal: any) => ({
               value: terminal.id,
-              label: terminal[sourceColumn as keyof typeof terminal],
+              label: terminal[sourceColumn],
             }));
           break;
 
         case 'currencies':
           response = await api.get('dictionary/currencies/');
           formattedData = response.currencies
-            .filter((currency: any) => currency[sourceColumn as keyof typeof currency])
+            .filter((currency: any) => currency[sourceColumn])
             .map((currency: any) => ({
               value: currency.id,
-              label: currency[sourceColumn as keyof typeof currency],
+              label: currency[sourceColumn],
             }));
           break;
 
         case 'containers':
           response = await api.get('dictionary/containers/');
           formattedData = response.containers
-            .filter((container: any) => container[sourceColumn as keyof typeof container])
+            .filter((container: any) => container[sourceColumn])
             .map((container: any) => ({
               value: container.id,
-              label: container[sourceColumn as keyof typeof container],
-            }));
-          break;
-
-        case 'incoterms':
-          response = await api.get('dictionary/incoterms/');
-          formattedData = response.incoterms
-            .filter((incoterm: any) => incoterm[sourceColumn as keyof typeof incoterm])
-            .map((incoterm: any) => ({
-              value: incoterm.id,
-              label: incoterm[sourceColumn as keyof typeof incoterm],
-            }));
-          break;
-
-        case 'packaging_types':
-          response = await api.get('dictionary/packaging_types/');
-          formattedData = response.packaging_types
-            .filter((type: any) => type[sourceColumn as keyof typeof type])
-            .map((type: any) => ({
-              value: type.id,
-              label: type[sourceColumn as keyof typeof type],
-            }));
-          break;
-
-        case 'delivery_types':
-          response = await api.get('dictionary/delivery_types/');
-          formattedData = response.delivery_types
-            .filter((type: any) => type[sourceColumn as keyof typeof type])
-            .map((type: any) => ({
-              value: type.id,
-              label: type[sourceColumn as keyof typeof type],
+              label: container[sourceColumn],
             }));
           break;
 
@@ -165,15 +149,8 @@ const TaskDetailsModal: React.FC<ModalProps> = ({
             }));
           break;
 
-        case 'danger_classes':
-          response = await api.get('dictionary/danger_classes/');
-          formattedData = response.danger_classes
-            .filter((dangerClass: any) => dangerClass[sourceColumn as keyof typeof dangerClass])
-            .map((dangerClass: any) => ({
-              value: dangerClass.id,
-              label: dangerClass[sourceColumn as keyof typeof dangerClass],
-            }));
-          break;
+        // Добавьте эту функцию внутри компонента TaskDetailsModal, 
+        // перед функцией loadAllSelectData
 
         default:
           console.warn(`Unknown source table: ${sourceTable}`);
@@ -217,6 +194,52 @@ const TaskDetailsModal: React.FC<ModalProps> = ({
     }
   };
 
+  // const handleFormSubmit = async (values: TaskFormData) => {
+  //   try {
+  //     const updatedTask = {
+  //       ...task,
+  //       ...values,
+  //     };
+  //     // Обновление задачи в localStorage
+  //     const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+  //     const taskIndex = tasks.findIndex((t: Task) => t.id === taskId);
+  //     if (taskIndex !== -1) {
+  //       tasks[taskIndex] = updatedTask;
+  //       localStorage.setItem('tasks', JSON.stringify(tasks));
+  //     }
+  //     onClose();
+  //   } catch (error) {
+  //     console.error('Error updating task:', error);
+  //   }
+  // };
+
+  const renderStatusSelect = () => (
+    <Form.Item
+      name="status"
+      label="Статус"
+    >
+      <Select placeholder="Выберите статус">
+        <Option value={TaskStatus.PLANNED}>Запланировано</Option>
+        <Option value={TaskStatus.IN_PROGRESS}>В работе</Option>
+        <Option value={TaskStatus.COMPLETED}>Завершено</Option>
+      </Select>
+    </Form.Item>
+  );
+
+  const renderPrioritySelect = () => (
+    <Form.Item
+      name="priority"
+      label="Приоритет"
+    >
+      <Select placeholder="Выберите приоритет">
+        <Option value={TaskPriority.LOW}>Низкий</Option>
+        <Option value={TaskPriority.MEDIUM}>Средний</Option>
+        <Option value={TaskPriority.HIGH}>Высокий</Option>
+        <Option value={TaskPriority.URGENT}>Срочный</Option>
+      </Select>
+    </Form.Item>
+  );
+
   const renderDataField = (fieldData: any) => {
     if (fieldData.fieldType === 'select' && fieldData.sourceTable) {
       const selectKey = `${fieldData.sourceTable}_${fieldData.sourceColumn}`;
@@ -255,7 +278,6 @@ const TaskDetailsModal: React.FC<ModalProps> = ({
       </Form.Item>
     );
   };
-
   return (
     <Modal
       title={<Title level={4}>{`Задача: ${task?.name}` || 'Детали задачи'}</Title>}
@@ -264,7 +286,7 @@ const TaskDetailsModal: React.FC<ModalProps> = ({
         onClose();
         setIsInitialized(false);
       }}
-      onOk={onClose}
+      onOk={() => form.submit()}
       width={800}
     >
       {loading || !isInitialized ? (
@@ -274,23 +296,33 @@ const TaskDetailsModal: React.FC<ModalProps> = ({
       ) : !task ? (
         <Empty description="Задача не найдена" />
       ) : (
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <div>
-            <Title level={5}>Описание задачи</Title>
-            <p>{task.description}</p>
-          </div>
-          {linkedData.length > 0 && (
+        <Form
+          form={form}
+          layout="horizontal" // Меняем с vertical на horizontal
+          labelCol={{ span: 6 }} // Задаем ширину для лейблов
+          wrapperCol={{ span: 18 }} // Задаем ширину для полей ввода
+        // onFinish={handleFormSubmit}
+        >
+          <Space direction="vertical" size="large" style={{ width: '100%' }}>
             <div>
-              <Title level={5}>Данные</Title>
-              <Form form={form} layout="vertical">
-                {linkedData.map(data => renderDataField(data))}
-              </Form>
+              <Title level={5}>Опис процедури</Title>
+              <p>{task.description}</p>
+              {renderStatusSelect()}
+              {renderPrioritySelect()}
+
+              {linkedData.length > 0 && (
+                <div>
+                  <Title level={5}>Дополнительные данные</Title>
+                  {linkedData.map(data => renderDataField(data))}
+                </div>
+              )}
             </div>
-          )}
-        </Space>
+          </Space>
+        </Form>
       )}
     </Modal>
   );
 };
 
 export default TaskDetailsModal;
+

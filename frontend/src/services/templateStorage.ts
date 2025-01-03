@@ -88,6 +88,8 @@ export const taskStorage = {
                 id: uuidv4(),
                 department: task.department || '',
                 employee: task.employee || '',
+                status: task.status || '', // Значение по умолчанию
+            priority: task.priority || '', // Значение по умолчанию
                 linkedItems: task.linkedItems || {},
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -121,16 +123,19 @@ export const taskStorage = {
             if (index !== -1) {
                 tasks[index] = {
                     ...updatedTask,
-                    name: updatedTask.name, // преобразуем title в name
+                    name: updatedTask.name,
                     department: updatedTask.department || tasks[index].department,
                     employee: updatedTask.employee || tasks[index].employee,
+                    // Сохраняем status и priority
+                    status: updatedTask.status || tasks[index].status,
+                    priority: updatedTask.priority || tasks[index].priority,
                     linkedItems: {
                         ...tasks[index].linkedItems,
                         ...updatedTask.linkedItems
                     },
                     updatedAt: new Date().toISOString()
                 };
-                delete tasks[index].title; // удаляем title
+                delete tasks[index].title;
                 storage.set(STORAGE_KEYS.TASKS, tasks);
                 return tasks[index];
             }
